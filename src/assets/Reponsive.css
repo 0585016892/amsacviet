@@ -1,0 +1,274 @@
+/* footer */
+.footer-a {
+  max-width: 100%;
+  flex-direction: column;
+  margin: 0 90px;
+  padding-top: 90px;
+}
+.footer-lienhe {
+  justify-content: center;
+}
+.product-mota {
+  margin-left: 50px;
+  margin-top: 20px;
+  width: 528px;
+  border: 1px solid grey;
+  border-radius: 10px;
+  padding: 10px 15px;
+}
+.cart__name {
+  color: #373232;
+  font-size: 20px;
+}
+.cart__size {
+  border: 1px solid #c3c2c2;
+  border-radius: 15px;
+  width: 115px;
+  margin-top: 10px;
+}
+.cart__bottom {
+  display: flex;
+  justify-content: space-between;
+}
+.cart__img {
+  width: 90%;
+  height: 100%;
+  object-fit: cover;
+  margin-right: 16px;
+}
+.total__cart {
+  position: absolute;
+  top: -5;
+  right: -5;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+}
+@media (max-width: 768px) {
+  .footer-a {
+    padding: 20px 15px;
+    margin: 0;
+  }
+  .contact_b {
+    flex-direction: column;
+    text-align: center;
+  }
+  .footer-lienhe {
+    justify-content: start;
+  }
+  .contact_a {
+    margin-top: 20px;
+  }
+  .contact_a::before {
+    height: 3px;
+    background: white;
+    width: 100%;
+  }
+  .contact_a h5 {
+    font-size: 16px;
+    margin-top: 20px;
+  }
+
+  .contact_a ul {
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .contact_a li {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .contact_phone {
+    text-align: left;
+  }
+
+  .footer-banner {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
+  }
+
+  .footer-banner img {
+    width: 100px;
+    height: auto;
+  }
+
+  /* category */
+  /* Đặt vào file CSS chính hoặc CSS module */
+  .product-list {
+    display: grid;
+    margin: 0;
+    grid-template-columns: repeat(2, 1fr); /* 2 cột bằng nhau */
+    gap: 10px;
+  }
+
+  .product-item {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+
+  .product-item:hover {
+    transform: translateY(-3px);
+  }
+
+  .product-image img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .discount-badge {
+    position: absolute;
+    top: 10px;
+    background: #ebbbbb;
+    color: red;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .product-info {
+    padding: 10px;
+  }
+
+  .product-name {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #333;
+  }
+
+  .product-price {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .current-price {
+    font-weight: bold;
+    color: #e60023;
+  }
+
+  .original-price {
+    text-decoration: line-through;
+    color: gray;
+    font-size: 14px;
+  }
+
+  .product-colors {
+    display: flex;
+    gap: 5px;
+  }
+
+  .color-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+  }
+  .category-header {
+    padding: 16px;
+    margin: 0;
+  }
+
+  .filter-sort {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .sort-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .sort-button {
+    padding: 6px 12px;
+    border: none;
+    background-color: #eee;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .sort-button.active {
+    background-color: #333;
+    color: white;
+  }
+
+  .sort-select {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+  /* product */
+  .product-detail-container {
+    display: block;
+  }
+  .product-images {
+    margin: 0;
+  }
+  .product-name-pr {
+    font-size: 12px;
+  }
+  .quantity-controls {
+    margin: 10px 0;
+  }
+  .quantity-controls button {
+    padding: 0 10px;
+  }
+  .add-to-cart-button {
+    height: 80%;
+    padding: 2px 15px;
+    border-radius: 30px;
+    margin-top: 7px;
+  }
+  .product-mota {
+    width: 100%;
+    margin: 0;
+    border-top: 1px solid grey;
+    border-radius: 0;
+    border: 0;
+  }
+  .cart__name {
+    font-size: 14px;
+  }
+  .cart__size {
+    font-size: 14px;
+  }
+  .quantity-selector {
+    margin-bottom: 0;
+  }
+  .quantity-controlsrp {
+    height: 28px;
+  }
+  .cart__bottom {
+    height: 78px;
+    align-items: end;
+  }
+  .cart__img {
+    margin: 0;
+    width: 100%;
+  }
+  .total__cart {
+    top: -2px;
+    right: -4px;
+  }
+}
+/* profile */
+.profile {
+  margin-top: 90px;
+}

@@ -1,0 +1,13 @@
+export { default as Header } from "./Header";
+export { default as Slider } from "./Slider";
+export { default as Collection } from "./Collection";
+export { default as Footer } from "./Footer";
+export { default as Category } from "./Category";
+export { default as Product } from "./Product";
+export { default as Cart } from "./Cart";
+export { default as Order } from "./Order";
+export { default as SizeGuide } from "./SizeGuide";
+export { default as Search } from "./Search";
+export { default as ChatBox } from "./ChatBox";
+export { default as Proflie } from "./Proflie";
+export { default as Login } from "./Login";

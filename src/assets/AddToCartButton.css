@@ -1,0 +1,77 @@
+/* Style cho nút Thêm vào giỏ */
+.add-to-cart-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+/* Thông báo */
+.notification {
+  position: fixed;
+  top: 86px;
+  right: -300px; /* Vị trí ban đầu bên ngoài màn hình */
+  border: 1px solid #c3b9b9;
+  background-color: white;
+  color: white;
+  padding: 15px;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  transition: all 0.3s ease-in-out;
+  z-index: 1000;
+  width: 350px;
+}
+/* Khi thông báo hiển thị */
+.notification.show {
+  right: 20px; /* Vị trí cuối cùng khi thông báo xuất hiện */
+}
+.notification .card-header h6 {
+  color: black;
+}
+.notification hr {
+  border: 1px solid black;
+}
+.card-body .info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.card-body div {
+  color: black;
+}
+
+.info .price__a h5 {
+  font-size: 15px;
+  color: black;
+}
+.notification div {
+  margin-top: 10px;
+}
+
+.notification div strong {
+  font-size: 18px;
+  display: block;
+}
+.slide-notification {
+  position: fixed;
+  top: 80px;
+  right: -400px;
+  width: 300px;
+  border: 1px solid #b3b302;
+  padding: 15px 20px;
+  background-color: white;
+  display: flex;
+  color: #000;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  transition: right 0.5s ease;
+  align-items: center;
+}
+
+.slide-notification.warning {
+  right: 20px;
+}
