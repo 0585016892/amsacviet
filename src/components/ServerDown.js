@@ -7,39 +7,26 @@ const ServerDown = () => {
   const navigate = useNavigate();
 
   return (
-    <div style={{ position: "relative", height: "100vh" }}>
-      <img
-        src={serverErrorImg}
-        alt="Server Down"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          opacity: 0.75,
-        }}
-      />
+    <div
+     className="server_down">
       <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          textAlign: "center",
-          top: "50%",
-          transform: "translateY(-50%)",
-          color: "black",
-          textShadow: "2px 2px 4px #000",
-        }}
+        className="server_down_a d-none
+        d-md-block"
       >
-        <h2>🚫 Máy chủ không phản hồi</h2>
-        <p>Hệ thống đang bảo trì hoặc chưa bật. Vui lòng thử lại sau.</p>
-        <Button variant="dark" onClick={() => window.location.reload()}>
-          🔄 Thử lại
-        </Button>{" "}
-        <Button variant="outline-dark" onClick={() => navigate("/")}>
-          🏠 Trang chủ
-        </Button>
+        <h2 style={{ fontSize: "clamp(1.5rem, 5vw, 2.5rem)" }}>
+          🚫 Máy chủ không phản hồi
+        </h2>
+        <p style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)" }}>
+          Hệ thống đang bảo trì hoặc chưa được bật. Vui lòng thử lại sau.
+        </p>
+        <div style={{ marginTop: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
+          <Button variant="dark" onClick={() => window.location.reload()}>
+            🔄 Thử lại
+          </Button>
+          <Button variant="outline-dark" onClick={() => navigate("/")}>
+            🏠 Trang chủ
+          </Button>
+        </div>
       </div>
     </div>
   );
