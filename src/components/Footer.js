@@ -5,21 +5,30 @@ import { FaPhoneAlt } from "react-icons/fa";
 import { IoMail } from "react-icons/io5";
 import { MdAddLocation } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { getActiveFooters } from "../api/footerApi";
 import { getSlidesByArea } from "../api/slideApi";
 
 const Footer = () => {
   const [footer, setFooter] = useState([]);
+  const [hasError, setHasError] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSlides = async () => {
-      const result = await getSlidesByArea("footer");
+      try {
+        const result = await getSlidesByArea("footer");
       setFooter(result);
+      } catch (error) {
+        setHasError(true);
+        navigate("/server-down");
+      }
     };
 
     fetchSlides();
-  }, []);
+  }, [navigate]);
+ 
 
   const [footerItems, setFooterItems] = useState([]);
 
