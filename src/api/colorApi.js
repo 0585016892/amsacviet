@@ -8,10 +8,6 @@ export const getAllColors = async () => {
     const res = await axios.get(`${API_URL}/colors/all`);
     return res.data;
   } catch (err) {
-    console.error(
-      "Lỗi khi lấy danh sách màu:",
-      err?.response?.data || err.message
-    );
-    return [];
+    throw err; // 👉 QUAN TRỌNG: quăng lỗi lên để component xử lý
   }
 };

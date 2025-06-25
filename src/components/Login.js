@@ -25,6 +25,7 @@ const Login = () => {
       setErrorMsg(error);
     } finally {
       setLoading(false);
+      
     }
   };
 

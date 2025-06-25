@@ -11,3 +11,4 @@ export { default as Search } from "./Search";
 export { default as ChatBox } from "./ChatBox";
 export { default as Proflie } from "./Proflie";
 export { default as Login } from "./Login";
+export { default as ServerDown } from "./ServerDown";

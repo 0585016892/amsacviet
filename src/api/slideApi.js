@@ -8,7 +8,6 @@ export const getSlidesByArea = async (display_area) => {
     });
     return response.data.slides;
   } catch (error) {
-    console.error("Lỗi khi lấy slide:", error);
-    return [];
+    throw error; // 👉 QUAN TRỌNG: quăng lỗi lên để component xử lý
   }
 };

@@ -20,7 +20,6 @@ export const getProductBySlug = async (slug) => {
     }
     return await response.json();
   } catch (error) {
-    console.error("Error fetching product by slug:", error);
     throw error;
   }
 };
@@ -35,7 +34,6 @@ export const searchProducts = async (keyword) => {
     }
     return await response.json();
   } catch (error) {
-    console.error("Error searching products:", error);
     throw error;
   }
 };

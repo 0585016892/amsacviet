@@ -52,7 +52,6 @@ const Product = () => {
           ],
         });
       } catch (error) {
-        console.error("Error loading product:", error);
       } finally {
         setLoading(false);
       }
@@ -155,7 +154,6 @@ const Product = () => {
   //       (prevProduct.currentImageUrlIndex + 1) % prevProduct.imageUrls.length,
   //   }));
   // };
-  console.log(product);
 
   if (loading) {
     return (

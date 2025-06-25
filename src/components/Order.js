@@ -235,9 +235,9 @@ const Order = () => {
         );
 
         const data = await res.json();
-        console.log("🔍 Dữ liệu trả về từ API create-vnpay:", data);
-        console.log(data.paymentUrl);
-        console.log(res.ok);
+        // console.log("🔍 Dữ liệu trả về từ API create-vnpay:", data);
+        // console.log(data.paymentUrl);
+        // console.log(res.ok);
 
         if (res.ok && data.paymentUrl) {
           window.location.href = data.paymentUrl;
@@ -246,7 +246,7 @@ const Order = () => {
         }
       }
     } catch (err) {
-      console.error("Lỗi khi xử lý đơn hàng:", err);
+      // console.error("Lỗi khi xử lý đơn hàng:", err);
       setSuccessMsg("Không thể gửi đơn hàng.");
     } finally {
       setLoading(false);

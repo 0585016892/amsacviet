@@ -54,7 +54,6 @@ const Header = () => {
         const data = await categoryService.getCategories();
         setCategoryData(data);
       } catch (error) {
-        console.error("Lỗi khi lấy danh mục:", error);
       }
     };
 

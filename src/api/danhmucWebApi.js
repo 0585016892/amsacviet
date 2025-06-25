@@ -13,10 +13,7 @@ const categoryService = {
       const { data } = await axios.get(`${API_URL}/categories/danhmucWeb`);
       return data;
     } catch (error) {
-      console.error(
-        "Lỗi khi lấy danh mục:",
-        error.response?.data?.message || error.message || error
-      );
+     
       throw error;
     }
   },

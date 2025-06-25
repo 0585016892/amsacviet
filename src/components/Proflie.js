@@ -54,7 +54,6 @@ const Profile = () => {
         const pending = await userApi.getPendingOrders();
         setPendingOrders(pending);
       } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error);
       } finally {
         setLoading(false);
       }

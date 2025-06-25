@@ -61,7 +61,6 @@ const userApi = {
     const res = await axios.put(`${API_URL}/users/change-password`, data, {
       headers: getHeaders(),
     });
-    console.log(data);
 
     return res.data;
   },
