@@ -17,7 +17,7 @@ const ServerDown = () => {
           🚫 Máy chủ không phản hồi
         </h2>
         <p style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)" }}>
-          Hệ thống đang bảo trì hoặc chưa được bật. Vui lòng thử lại sau.
+          Hệ thống đang bảo trì . Vui lòng thử lại sau.
         </p>
         <div style={{ marginTop: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
           <Button variant="dark" onClick={() => window.location.reload()}>
