@@ -162,7 +162,7 @@ const Footer = () => {
                   footer.status === "active" ? (
                     <img
                       key={footer.id}
-                      src={`https://your-api.up.railway.app/uploads/${footer.image}`}
+                      src={`https://finlyapi-production.up.railway.app/uploads/${footer.image}`}
                       height={150}
                       width={150}
                       alt=""

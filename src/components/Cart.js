@@ -169,7 +169,7 @@ const Cart = () => {
                     <Col md={3} xs={4}>
                       {item.image && (
                         <Image
-                          src={`https://your-api.up.railway.app/uploads/${item.image}`}
+                          src={`https://finlyapi-production.up.railway.app/uploads/${item.image}`}
                           alt={item.name}
                           className="rounded cart__img"
                         />

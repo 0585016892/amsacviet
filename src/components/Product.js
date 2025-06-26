@@ -207,7 +207,7 @@ const Product = () => {
                     (img, idx) => (
                       <Image
                         key={idx}
-                        src={`https://your-api.up.railway.app/uploads/${img}`}
+                        src={`https://finlyapi-production.up.railway.app/uploads/${img}`}
                         thumbnail
                         style={{
                           width: "100px",
@@ -227,7 +227,7 @@ const Product = () => {
                 </div>
                 <div className="main-image">
                   <img
-                    src={`https://your-api.up.railway.app/uploads/${selectedImage}`}
+                    src={`https://finlyapi-production.up.railway.app/uploads/${selectedImage}`}
                     alt={product.name}
                   />
                 </div>
@@ -426,7 +426,7 @@ const Product = () => {
                 <div>{product.description}</div>
                 <img
                   style={{ objectFit: "cover", width: "100%" }}
-                  src={`https://your-api.up.railway.app/uploads/${product.image}`}
+                  src={`https://finlyapi-production.up.railway.app/uploads/${product.image}`}
                   alt={product.name}
                 />
               </div>
@@ -448,7 +448,7 @@ const Product = () => {
             <div className="card-body d-flex align-items-center">
               <div className="me-3">
                 <img
-                  src={`https://your-api.up.railway.app/uploads/${product.image}`}
+                  src={`https://finlyapi-production.up.railway.app/uploads/${product.image}`}
                   alt="Product Image"
                   className="rounded"
                   style={{ width: "100%", height: "80px", objectFit: "cover" }}

@@ -60,7 +60,7 @@ const Search = () => {
       <div className="product-image">
         <Link to={`/product/${product.slug}`}>
           <img
-            src={`https://your-api.up.railway.app/uploads/${product.image}`}
+            src={`https://finlyapi-production.up.railway.app/uploads/${product.image}`}
             alt={product.name}
           />
         </Link>

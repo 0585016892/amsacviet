@@ -44,7 +44,7 @@ const Slider = () => {
                 className="d-block w-100"
                 src={
                   slide.image
-                    ? `https://your-api.up.railway.app/uploads/${slide.image}`
+                    ? `https://finlyapi-production.up.railway.app/uploads/${slide.image}`
                     : slide404
                 }
                 alt="Slide"

@@ -113,7 +113,9 @@ const Order = () => {
   const [coupons, setCoupons] = useState([]);
   useEffect(() => {
     axios
-      .get("https://your-api.up.railway.app/api/coupons?description=0")
+      .get(
+        "https://finlyapi-production.up.railway.app/api/coupons?description=0"
+      )
       .then((res) => {
         const filteredCoupons = res.data.coupons.filter(
           (coupon) => coupon.description === "0"
@@ -200,7 +202,7 @@ const Order = () => {
       if (paymentMethod === "COD") {
         // Gửi đơn hàng luôn
         const res = await fetch(
-          "https://your-api.up.railway.app/api/orders/add",
+          "https://finlyapi-production.up.railway.app/api/orders/add",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -212,7 +214,7 @@ const Order = () => {
         if (res.ok) {
           if (selectedCoupon) {
             await fetch(
-              `https://your-api.up.railway.app/api/coupons/use/${selectedCoupon.id}`,
+              `https://finlyapi-production.up.railway.app/api/coupons/use/${selectedCoupon.id}`,
               {
                 method: "PATCH",
               }
@@ -231,7 +233,7 @@ const Order = () => {
       } else if (paymentMethod === "VNPAY") {
         // Gọi API tạo link thanh toán
         const res = await fetch(
-          "https://your-api.up.railway.app/api/orders/create-vnpay",
+          "https://finlyapi-production.up.railway.app/api/orders/create-vnpay",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -436,7 +438,7 @@ const Order = () => {
                 <div key={index}>
                   <div className="d-flex align-items-center mb-2">
                     <img
-                      src={`https://your-api.up.railway.app/uploads/${item.image}`}
+                      src={`https://finlyapi-production.up.railway.app/uploads/${item.image}`}
                       alt="Product"
                       className="me-2"
                       style={{

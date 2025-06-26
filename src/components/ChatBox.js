@@ -20,7 +20,7 @@ const ChatBox = ({ userId }) => {
   useEffect(() => {
     if (!userId) return;
 
-    const socket = io("https://your-api.up.railway.app", {
+    const socket = io("https://finlyapi-production.up.railway.app", {
       transports: ["websocket"],
     });
 
@@ -47,7 +47,9 @@ const ChatBox = ({ userId }) => {
       setOnlineUsers(users);
     });
 
-    fetch(`https://your-api.up.railway.app/api/chat/conversation/${userId}`)
+    fetch(
+      `https://finlyapi-production.up.railway.app/api/chat/conversation/${userId}`
+    )
       .then((res) => res.json())
       .then((data) => setChat(data))
       .catch(console.error);
