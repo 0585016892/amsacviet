@@ -19,7 +19,7 @@ const Footer = () => {
     const fetchSlides = async () => {
       try {
         const result = await getSlidesByArea("footer");
-      setFooter(result);
+        setFooter(result);
       } catch (error) {
         setHasError(true);
         navigate("/server-down");
@@ -28,7 +28,6 @@ const Footer = () => {
 
     fetchSlides();
   }, [navigate]);
- 
 
   const [footerItems, setFooterItems] = useState([]);
 
@@ -163,7 +162,7 @@ const Footer = () => {
                   footer.status === "active" ? (
                     <img
                       key={footer.id}
-                      src={`http://localhost:5000/uploads/${footer.image}`}
+                      src={`https://your-api.up.railway.app/uploads/${footer.image}`}
                       height={150}
                       width={150}
                       alt=""

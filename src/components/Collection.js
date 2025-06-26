@@ -44,7 +44,7 @@ const Collection = () => {
             <SwiperSlide key={index}>
               <a key={img.id} href={img.link}>
                 <img
-                  src={`http://localhost:5000/uploads/${img.image}`}
+                  src={`https://your-api.up.railway.app/uploads/${img.image}`}
                   alt={`Slide ${index}`}
                   style={{
                     width: "100%",

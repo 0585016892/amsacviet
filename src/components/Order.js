@@ -112,12 +112,14 @@ const Order = () => {
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [coupons, setCoupons] = useState([]);
   useEffect(() => {
-    axios.get("http://localhost:5000/api/coupons?description=0").then((res) => {
-      const filteredCoupons = res.data.coupons.filter(
-        (coupon) => coupon.description === "0"
-      );
-      setCoupons(filteredCoupons);
-    });
+    axios
+      .get("https://your-api.up.railway.app/api/coupons?description=0")
+      .then((res) => {
+        const filteredCoupons = res.data.coupons.filter(
+          (coupon) => coupon.description === "0"
+        );
+        setCoupons(filteredCoupons);
+      });
   }, []);
   useEffect(() => {
     if (selectedCoupon) {
@@ -197,17 +199,20 @@ const Order = () => {
     try {
       if (paymentMethod === "COD") {
         // Gửi đơn hàng luôn
-        const res = await fetch("http://localhost:5000/api/orders/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(orderData),
-        });
+        const res = await fetch(
+          "https://your-api.up.railway.app/api/orders/add",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderData),
+          }
+        );
 
         const data = await res.json();
         if (res.ok) {
           if (selectedCoupon) {
             await fetch(
-              `http://localhost:5000/api/coupons/use/${selectedCoupon.id}`,
+              `https://your-api.up.railway.app/api/coupons/use/${selectedCoupon.id}`,
               {
                 method: "PATCH",
               }
@@ -226,7 +231,7 @@ const Order = () => {
       } else if (paymentMethod === "VNPAY") {
         // Gọi API tạo link thanh toán
         const res = await fetch(
-          "http://localhost:5000/api/orders/create-vnpay",
+          "https://your-api.up.railway.app/api/orders/create-vnpay",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -431,7 +436,7 @@ const Order = () => {
                 <div key={index}>
                   <div className="d-flex align-items-center mb-2">
                     <img
-                      src={`http://localhost:5000/uploads/${item.image}`}
+                      src={`https://your-api.up.railway.app/uploads/${item.image}`}
                       alt="Product"
                       className="me-2"
                       style={{
