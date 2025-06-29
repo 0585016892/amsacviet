@@ -349,7 +349,7 @@ const ChatBox = ({ userId }) => {
                         src={msg.image}
                         alt="Product"
                         style={{
-                          width: "100%",
+                          width: "50%",
                           borderRadius: "10px",
                           marginTop: "5px",
                         }}
@@ -498,7 +498,7 @@ const ChatBox = ({ userId }) => {
           <div className="card-body d-flex align-items-center">
             <div className="me-3">
               <img
-                src={`http://localhost:5000/uploads/${addedProduct.image}`}
+                src={`https://finlyapi-production.up.railway.app/uploads/${addedProduct.image}`}
                 alt="Product Image"
                 className="rounded"
                 style={{ width: "100%", height: "80px", objectFit: "cover" }}
