@@ -1,11 +1,16 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import io from "socket.io-client";
-import { Button, Card, Form, InputGroup, Badge } from "react-bootstrap";
+import { Button, Card, Form, InputGroup, Badge, Modal } from "react-bootstrap";
 import { BsChatDotsFill } from "react-icons/bs";
 import { MdHorizontalRule } from "react-icons/md";
 import logoAdmin from "../img/logoadmin.png";
+import { useCart } from "../context/CartContext";
+import { Link } from "react-router-dom";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const ChatBox = ({ userId }) => {
+  const { addToCart } = useCart();
+
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
@@ -13,7 +18,9 @@ const ChatBox = ({ userId }) => {
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState(null);
-
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showNotification, setShowNotification] = useState(false);
+  const [addedProduct, setAddedProduct] = useState(null);
   const socketRef = useRef();
   const chatBoxRef = useRef();
 
@@ -47,9 +54,7 @@ const ChatBox = ({ userId }) => {
       setOnlineUsers(users);
     });
 
-    fetch(
-      `https://finlyapi-production.up.railway.app/api/chat/conversation/${userId}`
-    )
+    fetch(`${API_URL}/chat/conversation/${userId}`)
       .then((res) => res.json())
       .then((data) => setChat(data))
       .catch(console.error);
@@ -75,29 +80,97 @@ const ChatBox = ({ userId }) => {
     });
   };
 
-  const sendMessage = useCallback(() => {
-    const trimmed = message.trim();
-    if (!trimmed || !socketRef.current) return;
+  // const sendMessage = useCallback(() => {
+  //   const trimmed = message.trim();
+  //   if (!trimmed || !socketRef.current) return;
 
-    const data = {
-      sender: userId,
-      receiver: "admin",
-      content: trimmed,
-      timestamp: Date.now(),
-    };
+  //   const data = {
+  //     sender: userId,
+  //     receiver: "admin",
+  //     content: trimmed,
+  //     timestamp: Date.now(),
+  //   };
 
-    socketRef.current.emit("send_private_message", data, (ack) => {
-      if (ack?.success) {
-        setMessage(""); // ❌ Không push vào state ở đây
-      } else {
-        console.error("Gửi tin nhắn thất bại:", ack?.error);
+  //   socketRef.current.emit("send_private_message", data, (ack) => {
+  //     if (ack?.success) {
+  //       setMessage(""); // ❌ Không push vào state ở đây
+  //     } else {
+  //       console.error("Gửi tin nhắn thất bại:", ack?.error);
+  //     }
+  //   });
+  // }, [message, userId]);
+  const handleSend = async () => {
+    if (selectedImage) {
+      const formData = new FormData();
+      formData.append("image", selectedImage);
+      formData.append("sender", userId);
+
+      try {
+        const res = await fetch(`${API_URL}/chat/upload-image`, {
+          method: "POST",
+          body: formData,
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          setMessage("");
+          setSelectedImage(null);
+          // KHÔNG emit lại - server đã gửi rồi
+        }
+      } catch (err) {
+        console.error("Lỗi gửi ảnh:", err);
       }
-    });
-  }, [message, userId]);
+    } else if (message.trim()) {
+      const data = {
+        sender: userId,
+        receiver: "admin",
+        content: message.trim(),
+        timestamp: Date.now(),
+      };
+
+      socketRef.current.emit("send_private_message", data, (ack) => {
+        if (ack?.success) {
+          setMessage("");
+        } else {
+          console.error("Gửi tin nhắn thất bại:", ack?.error);
+        }
+      });
+    }
+  };
+  // chọn size
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
+  const handleBuyProduct = (product) => {
+    setSelectedProduct(product);
+    setSelectedSize(product.sizes[0] || "");
+    setSelectedColor(product.colors[0] || "");
+    setShowBuyModal(true);
+  };
 
   const formatTime = (timestamp) => {
     const d = new Date(timestamp);
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+  function formatMessage(content) {
+    // Tự động phát hiện URL và tạo thẻ <a> có màu xanh
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const linkedText = content.replace(
+      urlRegex,
+      (url) =>
+        `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">${url}</a>`
+    );
+
+    // Đổi xuống dòng nếu có \n
+    return linkedText.replace(/\n/g, "<br/>");
+  }
+  //kh gửi ảnh
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file); // chỉ lưu vào state
+    }
   };
 
   return (
@@ -155,7 +228,7 @@ const ChatBox = ({ userId }) => {
           onClick={toggleChatBox}
           style={{
             position: "fixed",
-            bottom: 90,
+            top: 90,
             right: 20,
             width: 260,
             padding: "10px 14px",
@@ -256,7 +329,11 @@ const ChatBox = ({ userId }) => {
                     }}
                     title={formatTime(msg.timestamp)}
                   >
-                    {msg.content}
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: formatMessage(msg.content),
+                      }}
+                    />
                     <div
                       style={{
                         fontSize: "0.65rem",
@@ -267,6 +344,28 @@ const ChatBox = ({ userId }) => {
                     >
                       {formatTime(msg.timestamp)}
                     </div>
+                    {msg.image && (
+                      <img
+                        src={msg.image}
+                        alt="Product"
+                        style={{
+                          width: "100%",
+                          borderRadius: "10px",
+                          marginTop: "5px",
+                        }}
+                      />
+                    )}
+                    {msg.product && (
+                      <div className="mt-2 text-end">
+                        <Button
+                          size="sm"
+                          variant="success"
+                          onClick={() => handleBuyProduct(msg.product)}
+                        >
+                          🛒 Mua ngay
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -274,6 +373,15 @@ const ChatBox = ({ userId }) => {
           </Card.Body>
 
           <Card.Footer style={{ padding: "10px", backgroundColor: "#f8f9fa" }}>
+            {selectedImage && (
+              <div style={{ paddingTop: 6 }}>
+                <img
+                  src={URL.createObjectURL(selectedImage)}
+                  alt="preview"
+                  style={{ width: "20%", borderRadius: 5 }}
+                />
+              </div>
+            )}
             <InputGroup>
               <Form.Control
                 placeholder="Nhập tin nhắn..."
@@ -282,16 +390,151 @@ const ChatBox = ({ userId }) => {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    sendMessage();
+                    handleSend();
                   }
                 }}
               />
-              <Button onClick={sendMessage} disabled={!message.trim()}>
+              <Button
+                variant="outline-secondary"
+                onClick={() =>
+                  document.getElementById("chatImageInput").click()
+                }
+              >
+                📎
+              </Button>
+              <Form.Control
+                type="file"
+                accept="image/*"
+                id="chatImageInput"
+                style={{ display: "none" }}
+                onChange={handleImageChange} // ✅ Lưu vào state để chờ ấn nút Gửi
+              />
+              <Button
+                onClick={handleSend}
+                disabled={!message.trim() && !selectedImage}
+              >
                 Gửi
               </Button>
             </InputGroup>
           </Card.Footer>
         </Card>
+      )}
+      <Modal show={showBuyModal} onHide={() => setShowBuyModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Chọn size và màu</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Size:</Form.Label>
+            <Form.Select
+              value={selectedSize}
+              onChange={(e) => setSelectedSize(e.target.value)}
+            >
+              {selectedProduct?.sizes.map((size, i) => (
+                <option key={i} value={size}>
+                  {size}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
+          <Form.Group className="mt-3">
+            <Form.Label>Màu:</Form.Label>
+            <Form.Select
+              value={selectedColor}
+              onChange={(e) => setSelectedColor(e.target.value)}
+            >
+              {selectedProduct?.colors.map((color, i) => (
+                <option key={i} value={color}>
+                  {color}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="success"
+            onClick={() => {
+              // 👉 Thêm vào giỏ hàng ở đây
+              const cartItem = {
+                productId: selectedProduct.id,
+                name: selectedProduct.name,
+                size: selectedSize,
+                color: selectedColor,
+                price: selectedProduct.price,
+                quantity: 1,
+                image: selectedProduct.image,
+              };
+              // Ví dụ: localStorage
+              addToCart(cartItem);
+              setAddedProduct(cartItem);
+              // Hiển thị thông báo
+              setShowNotification(true);
+
+              // // Tắt thông báo sau 3 giây
+              setTimeout(() => {
+                setShowNotification(false);
+              }, 3000);
+              setShowBuyModal(false);
+            }}
+          >
+            Thêm vào giỏ
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      {showNotification && addedProduct && (
+        <div className="notification show">
+          <div className="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center">
+            <h6 className="mb-0">Đã thêm vào giỏ hàng</h6>
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="Close"
+              onClick={() => setShowNotification(false)}
+            ></button>
+          </div>
+          <hr />
+          <div className="card-body d-flex align-items-center">
+            <div className="me-3">
+              <img
+                src={`http://localhost:5000/uploads/${addedProduct.image}`}
+                alt="Product Image"
+                className="rounded"
+                style={{ width: "100%", height: "80px", objectFit: "cover" }}
+              />
+            </div>
+            <div className="info">
+              <div>
+                {" "}
+                <h6
+                  className="card-title mb-1 fw-bold"
+                  style={{ fontSize: "0.9rem" }}
+                >
+                  {addedProduct.name}
+                </h6>
+                <p
+                  className="card-text mb-0"
+                  style={{ fontSize: "0.8rem", color: "#6c757d" }}
+                >
+                  x{addedProduct.quantity} {addedProduct.color}{" "}
+                  {addedProduct.size}
+                </p>
+              </div>
+              <div className="price__a">
+                <h5 className="card-title mb-0">
+                  {" "}
+                  {Number(addedProduct.price)?.toLocaleString("vi-VN")} đ
+                </h5>
+              </div>
+            </div>
+          </div>
+          <div className="card-footer bg-white border-top-0 d-grid">
+            <Link to="/cart" className="btn btn-light rounded">
+              Xem giỏ hàng
+            </Link>
+          </div>
+        </div>
       )}
     </>
   );
