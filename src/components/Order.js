@@ -207,6 +207,7 @@ const Order = () => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(orderData),
+            credentials: "include", // ← Thêm dòng này để CORS hoạt động đúng nếu backend có credentials
           }
         );
 
