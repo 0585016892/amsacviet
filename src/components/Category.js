@@ -78,7 +78,7 @@ const Category = () => {
             src={`https://finlyapi-production.up.railway.app/uploads/${product.image}`}
             alt={product.name}
             style={{
-              opacity: isLoadingImage ? 0.5 : 1,
+              opacity: loading ? 0.5 : 1,
               transition: "opacity 0.3s ease",
             }}
             onLoad={() => setLoading(false)}
