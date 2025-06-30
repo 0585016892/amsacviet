@@ -60,10 +60,29 @@ const Category = () => {
   const renderProductItem = (product) => (
     <div key={product.id} className="product-item">
       <div className="product-image">
+      {loading && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 2,
+            }}
+          >
+            <Spinner animation="border" variant="primary" />
+          </div>
+        )}
         <Link to={`/product/${product.slug}`}>
           <img
             src={`https://finlyapi-production.up.railway.app/uploads/${product.image}`}
             alt={product.name}
+            style={{
+              opacity: isLoadingImage ? 0.5 : 1,
+              transition: "opacity 0.3s ease",
+            }}
+            onLoad={() => setLoading(false)}
+            onError={() => setLoading(false)} // fallback nếu lỗi
           />
         </Link>
         {product.discount_value && (
