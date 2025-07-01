@@ -19,6 +19,7 @@ const Product = () => {
   const [addedProduct, setAddedProduct] = useState(null);
   const [showColorWarning, setShowColorWarning] = useState(false);
   const [showSizeWarning, setShowSizeWarning] = useState(false);
+  const [showQtyWarning, setShowQtyWarning] = useState(false);
   const [showDes, setShowDes] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState("");
@@ -27,11 +28,14 @@ const Product = () => {
     const fetchProduct = async () => {
       try {
         const productData = await getProductBySlug(slug);
+        console.log(productData);
+        
         setSelectedImage(productData.image);
 
         // Gắn thêm các field cần thiết cho frontend
         setProduct({
           ...productData,
+          totalPto: productData.quantity,
           selectedColor: productData.colors ? productData.colors[0] : "",
           selectedSize: productData.sizes ? productData.sizes[0] : "",
           currentImageUrlIndex: 0,
@@ -90,9 +94,15 @@ const Product = () => {
       return { ...prev, quantity: newQuantity };
     });
   };
+console.log(product);
 
   const handleAddToCart = () => {
-    const {
+    if ( product.quantity > product.totalPto) {
+      setShowQtyWarning(true);
+      setTimeout(() => setShowQtyWarning(false), 2000);
+      return;
+    }
+      const {
       id,
       slug,
       name,
@@ -176,6 +186,11 @@ const Product = () => {
       {showSizeWarning && (
         <div className="slide-notification warning">
           <p>⚠️ Vui lòng chọn kích thước !</p>
+        </div>
+      )}
+      {showQtyWarning && (
+        <div className="slide-notification warning">
+          <p>⚠️ Sản phẩm không đủ số lượng !</p>
         </div>
       )}
       <div className="category-header">

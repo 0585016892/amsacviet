@@ -57,6 +57,7 @@ const Order = () => {
 
         // Tổng tiền sau khi trừ giảm giá từng sản phẩm
         totalPrice += finalItemPrice * quantity;
+        
       });
 
       setTotal(totalPrice);
@@ -134,6 +135,7 @@ const Order = () => {
     } else {
       setDiscount(0);
     }
+
   }, [selectedCoupon, total, productDiscount]);
 
   //   post
@@ -193,6 +195,7 @@ const Order = () => {
       payment_method: paymentMethod,
       status: paymentMethod === "COD" ? "Chờ xử lý" : "Đang chờ thanh toán",
     };
+console.log(orderData);
 
     if (selectedCoupon) {
       orderData.coupon_id = selectedCoupon.id;
