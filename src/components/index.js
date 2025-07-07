@@ -12,3 +12,4 @@ export { default as ChatBox } from "./ChatBox";
 export { default as Proflie } from "./Proflie";
 export { default as Login } from "./Login";
 export { default as ServerDown } from "./ServerDown";
+export { default as Loading } from "./Loading";

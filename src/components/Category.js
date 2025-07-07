@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { getCategoryData } from "../api/sanphamWebApi";
 import { FaArrowUpShortWide, FaArrowUpWideShort } from "react-icons/fa6";
+import { Loading } from "../components";
 import { getAllColors } from "../api/colorApi";
 const Category = () => {
   const { slug } = useParams();
@@ -53,14 +54,14 @@ const Category = () => {
         className="text-center mt-5 d-flex justify-content-center align-items-center"
         style={{ height: 800 }}
       >
-        <Spinner animation="border" />
+        <Loading />
       </Container>
     );
   }
   const renderProductItem = (product) => (
     <div key={product.id} className="product-item">
       <div className="product-image">
-      {loading && (
+        {loading && (
           <div
             style={{
               position: "absolute",
@@ -188,23 +189,45 @@ const Category = () => {
         </div>
       </div>
       <div className="product-list" style={{ padding: "0 16px" }}>
-        {categoryData?.products
-          ?.filter((product) => Number(product.quantity) > 0)
-          ?.sort((a, b) => {
-            switch (sortType) {
-              case "discount":
-                return (b.discount || 0) - (a.discount || 0);
-              case "newest":
-                return new Date(b.created_at) - new Date(a.created_at);
-              case "priceAsc":
-                return a.price - b.price;
-              case "priceDesc":
-                return b.price - a.price;
-              default:
-                return 0;
-            }
-          })
-          ?.map(renderProductItem)}
+        {categoryData?.products?.filter((p) => Number(p.quantity) > 0)?.length >
+        0 ? (
+          categoryData.products
+            .filter((product) => Number(product.quantity) > 0)
+            .sort((a, b) => {
+              switch (sortType) {
+                case "discount":
+                  return (b.discount || 0) - (a.discount || 0);
+                case "newest":
+                  return new Date(b.created_at) - new Date(a.created_at);
+                case "priceAsc":
+                  return a.price - b.price;
+                case "priceDesc":
+                  return b.price - a.price;
+                default:
+                  return 0;
+              }
+            })
+            .map(renderProductItem)
+        ) : (
+          <div
+            className="d-flex flex-column align-items-center justify-content-center text-muted mt-5"
+            style={{ fontStyle: "italic", minHeight: "300px" }}
+          >
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png"
+              alt="No products"
+              style={{ width: "120px", opacity: 0.6, marginBottom: "16px" }}
+            />
+            <h5 className="fw-semibold">Không có sản phẩm nào phù hợp</h5>
+            <p style={{ fontSize: "14px" }}>
+              Vui lòng thử lại với danh mục khác hoặc quay về{" "}
+              <Link to="/" className="text-decoration-underline text-primary">
+                Trang chủ
+              </Link>
+              .
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

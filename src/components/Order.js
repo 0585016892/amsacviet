@@ -57,7 +57,6 @@ const Order = () => {
 
         // Tổng tiền sau khi trừ giảm giá từng sản phẩm
         totalPrice += finalItemPrice * quantity;
-        
       });
 
       setTotal(totalPrice);
@@ -79,7 +78,7 @@ const Order = () => {
   const [paymentMethod, setPaymentMethod] = useState("COD");
   // Lấy danh sách tỉnh
   useEffect(() => {
-    fetch("https://api.vnappmob.com/api/v2/province/")
+    fetch(" https://api.vnappmob.com/api/v2/province/")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data.results)) {
@@ -96,7 +95,9 @@ const Order = () => {
   // Lấy danh sách quận/huyện khi chọn tỉnh
   useEffect(() => {
     if (selectedProvince) {
-      fetch(`https://api.vnappmob.com/api/v2/district/${selectedProvince}`)
+      fetch(
+        `https://api.vnappmob.com/api/v2/province/district/${selectedProvince}`
+      )
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data.results)) {
@@ -115,7 +116,7 @@ const Order = () => {
   // Lấy danh sách phường/xã khi chọn huyện
   useEffect(() => {
     if (selectedDistrict) {
-      fetch(`https://api.vnappmob.com/api/v2/ward/${selectedDistrict}`)
+      fetch(`https://api.vnappmob.com/api/v2/province/ward/${selectedDistrict}`)
         .then((res) => res.json())
         .then((data) => setWards(data.results))
         .catch((err) => setSuccessMsg("Lỗi tải phường/xã: " + err));
@@ -149,9 +150,17 @@ const Order = () => {
     } else {
       setDiscount(0);
     }
-
   }, [selectedCoupon, total, productDiscount]);
+  const provinceName =
+    provinces.find((p) => p.province_id === selectedProvince)?.province_name ||
+    "";
 
+  const districtName =
+    districts.find((d) => d.district_id === selectedDistrict)?.district_name ||
+    "";
+
+  const wardName =
+    wards.find((w) => w.ward_id === selectedWard)?.ward_name || "";
   //   post
   // Thông tin người dùng và địa chỉ
   const [name, setName] = useState("");
@@ -179,13 +188,15 @@ const Order = () => {
     }
 
     const provinceName =
-    provinces.find((p) => p.province_id === selectedProvince)?.province_name || "";
-  const districtName =
-    districts.find((d) => d.district_id === selectedDistrict)?.district_name || "";
-  const wardName =
-    wards.find((w) => w.ward_id === selectedWard)?.ward_name || "";
-  
-  const fullAddress = `${wardName}, ${districtName}, ${provinceName}`;
+      provinces.find((p) => p.province_id === selectedProvince)
+        ?.province_name || "";
+    const districtName =
+      districts.find((d) => d.district_id === selectedDistrict)
+        ?.district_name || "";
+    const wardName =
+      wards.find((w) => w.ward_id === selectedWard)?.ward_name || "";
+
+    const fullAddress = `${wardName}, ${districtName}, ${provinceName}`;
 
     const detailedItems = orderItems?.map((item) => ({
       product_id: item.id,
@@ -369,10 +380,13 @@ const Order = () => {
                         >
                           <option value="">-- Chọn Tỉnh/Thành phố --</option>
                           {provinces.map((province) => (
-                              <option key={province.province_id} value={province.province_id}>
-                                {province.province_name}
-                              </option>
-                            ))}
+                            <option
+                              key={province.province_id}
+                              value={province.province_id}
+                            >
+                              {province.province_name}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
@@ -385,7 +399,10 @@ const Order = () => {
                         >
                           <option value="">-- Chọn Quận/Huyện --</option>
                           {districts.map((district) => (
-                            <option key={district.district_id} value={district.district_id}>
+                            <option
+                              key={district.district_id}
+                              value={district.district_id}
+                            >
                               {district.district_name}
                             </option>
                           ))}
@@ -412,24 +429,9 @@ const Order = () => {
                     <div className="mt-3">
                       <strong>Địa chỉ đã chọn:</strong>{" "}
                       {selectedProvince && selectedDistrict && selectedWard ? (
-                        <>
-                          {
-                            provinces.find(
-                              (p) => p.code === Number(selectedProvince)
-                            )?.name
-                          }
-                          ,{" "}
-                          {
-                            districts.find(
-                              (d) => d.code === Number(selectedDistrict)
-                            )?.name
-                          }
-                          ,{" "}
-                          {
-                            wards.find((w) => w.code === Number(selectedWard))
-                              ?.name
-                          }
-                        </>
+                        [wardName, districtName, provinceName]
+                          .filter((item) => item !== "")
+                          .join(", ")
                       ) : (
                         <span>Chưa chọn đầy đủ</span>
                       )}
@@ -653,40 +655,42 @@ const Order = () => {
               </button>
             </div>
             <hr />
-            {coupons?.map(
-              (coupon) =>
-                total >= coupon.min_order_total &&
-                coupon.status === "active" && (
-                  <div key={coupon.id} className="coupon-item">
-                    <div className="d-flex">
-                      <div className="rounded-circle">%</div>
-                      <div>
-                        <div className="font-weight-bold">
-                          {coupon.code || "Ưu đãi đặc biệt"}
-                        </div>
-                        <div className="text-secondary">
-                          Giảm{" "}
-                          {coupon.discount_type === "fixed"
-                            ? parseFloat(coupon.discount_value).toLocaleString(
-                                "vi-VN"
-                              ) + " ₫"
-                            : `${parseFloat(
-                                coupon.discount_value
-                              ).toLocaleString("vi-VN")} %`}
-                        </div>
+            {coupons
+              ?.filter(
+                (coupon) =>
+                  coupon.status === "active" &&
+                  coupon.quantity > 0 &&
+                  total >= coupon.min_order_total &&
+                  new Date(coupon.end_date) >= new Date()
+              )
+              .map((coupon) => (
+                <div key={coupon.id} className="coupon-item">
+                  <div className="d-flex">
+                    <div className="rounded-circle">%</div>
+                    <div>
+                      <div className="font-weight-bold">
+                        {coupon.code || "Ưu đãi đặc biệt"}
+                      </div>
+                      <div className="text-secondary">
+                        Giảm{" "}
+                        {coupon.discount_type === "fixed"
+                          ? parseFloat(coupon.discount_value).toLocaleString(
+                              "vi-VN"
+                            ) + " ₫"
+                          : `${parseFloat(coupon.discount_value).toLocaleString(
+                              "vi-VN"
+                            )} %`}
                       </div>
                     </div>
-                    {coupon.quantity > 0 && (
-                      <Form.Check
-                        type="radio"
-                        name="promotion"
-                        onChange={() => setSelectedCoupon(coupon)}
-                        checked={selectedCoupon?.id === coupon.id}
-                      />
-                    )}
                   </div>
-                )
-            )}
+                  <Form.Check
+                    type="radio"
+                    name="promotion"
+                    onChange={() => setSelectedCoupon(coupon)}
+                    checked={selectedCoupon?.id === coupon.id}
+                  />
+                </div>
+              ))}
           </div>
         </>
       )}

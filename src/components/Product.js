@@ -11,6 +11,9 @@ import { TfiReload } from "react-icons/tfi";
 import { AiOutlineFileProtect } from "react-icons/ai";
 import { getAllColors } from "../api/colorApi";
 import { useCart } from "../context/CartContext";
+import { Loading } from "../components";
+import { showSuccessToast, showErrorToast } from "../utils/toastUtils";
+
 const Product = () => {
   const { addToCart } = useCart();
   const { slug } = useParams();
@@ -28,8 +31,7 @@ const Product = () => {
     const fetchProduct = async () => {
       try {
         const productData = await getProductBySlug(slug);
-        console.log(productData);
-        
+
         setSelectedImage(productData.image);
 
         // Gắn thêm các field cần thiết cho frontend
@@ -94,15 +96,14 @@ const Product = () => {
       return { ...prev, quantity: newQuantity };
     });
   };
-console.log(product);
 
   const handleAddToCart = () => {
-    if ( product.quantity > product.totalPto) {
+    if (product.quantity > product.totalPto) {
       setShowQtyWarning(true);
       setTimeout(() => setShowQtyWarning(false), 2000);
       return;
     }
-      const {
+    const {
       id,
       slug,
       name,
@@ -171,7 +172,7 @@ console.log(product);
         className="text-center mt-5 d-flex justify-content-center align-items-center"
         style={{ height: 800 }}
       >
-        <Spinner animation="border" />
+        <Loading />
       </Container>
     );
   }

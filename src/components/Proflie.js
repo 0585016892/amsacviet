@@ -17,6 +17,7 @@ import {
 } from "react-bootstrap";
 import userApi from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
+import { Loading } from "../components";
 
 const Profile = () => {
   const { logout } = useAuth();
@@ -102,7 +103,7 @@ const Profile = () => {
         className="text-center mt-5 d-flex justify-content-center align-items-center"
         style={{ height: 800 }}
       >
-        <Spinner animation="border" />
+        <Loading />
       </Container>
     );
   }

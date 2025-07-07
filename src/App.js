@@ -3,11 +3,13 @@ import React from "react";
 import {
   Cart,
   Category,
+  Loading,
   Login,
   Order,
   Product,
   Proflie,
-  Search,ServerDown
+  Search,
+  ServerDown,
 } from "./components";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Routes, Route, usePaRams } from "react-router-dom";

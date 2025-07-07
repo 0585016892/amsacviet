@@ -4,7 +4,7 @@ const Home = () => {
   return (
     <div>
       <Slider />
-      <Collection />
+      <Collection area="popup" title="SẢN PHẨM MỚI NHẤT" />
     </div>
   );
 };

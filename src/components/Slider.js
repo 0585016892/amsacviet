@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Carousel } from "react-bootstrap";
+import { Carousel, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { getSlidesByArea } from "../api/slideApi";
 import slide404 from "../img/Slide404.png";
@@ -7,6 +7,7 @@ import slide404 from "../img/Slide404.png";
 const Slider = () => {
   const [slides, setSlides] = useState([]);
   const [hasError, setHasError] = useState(false);
+  const [loadingImages, setLoadingImages] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +24,48 @@ const Slider = () => {
     fetchSlides();
   }, [navigate]);
 
-  // Nếu muốn fallback ảnh khi lỗi, không dùng navigate()
+  const handleImageLoad = (id) => {
+    setLoadingImages((prev) => ({ ...prev, [id]: false }));
+  };
+
+  const handleImageError = (id) => {
+    setLoadingImages((prev) => ({ ...prev, [id]: false }));
+  };
+
+  const renderSlideImage = (slide) => {
+    const isLoading = loadingImages[slide.id] !== false;
+
+    return (
+      <div style={{ position: "relative" }}>
+        {isLoading && (
+          <div
+            style={{
+              position: "absolute",
+              top: "40%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 2,
+            }}
+          >
+            <Spinner animation="border" variant="warning" />
+          </div>
+        )}
+        <img
+          className="d-block w-100"
+          src={
+            slide.image
+              ? `https://finlyapi-production.up.railway.app/uploads/${slide.image}`
+              : slide404
+          }
+          alt="Slide"
+          style={isLoading ? { opacity: 0 } : { transition: "opacity 0.3s" }}
+          onLoad={() => handleImageLoad(slide.id)}
+          onError={() => handleImageError(slide.id)}
+        />
+      </div>
+    );
+  };
+
   if (hasError) {
     return (
       <Carousel fade interval={2000} controls indicators>
@@ -35,25 +77,15 @@ const Slider = () => {
   }
 
   return (
-    <div>
-      <Carousel fade interval={2000} controls indicators>
-        {slides?.map((slide) =>
-          slide.status === "active" ? (
-            <Carousel.Item key={slide.id}>
-              <img
-                className="d-block w-100"
-                src={
-                  slide.image
-                    ? `https://finlyapi-production.up.railway.app/uploads/${slide.image}`
-                    : slide404
-                }
-                alt="Slide"
-              />
-            </Carousel.Item>
-          ) : null
-        )}
-      </Carousel>
-    </div>
+    <Carousel fade interval={2000} controls indicators>
+      {slides?.map((slide) =>
+        slide.status === "active" ? (
+          <Carousel.Item key={slide.id}>
+            {renderSlideImage(slide)}
+          </Carousel.Item>
+        ) : null
+      )}
+    </Carousel>
   );
 };
 

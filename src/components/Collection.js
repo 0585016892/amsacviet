@@ -1,62 +1,101 @@
 import React, { useEffect, useState } from "react";
+import { Spinner } from "react-bootstrap"; // Thêm Spinner
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
-import { Navigation } from "swiper/modules";
+import { Navigation, Autoplay } from "swiper/modules";
 import { getSlidesByArea } from "../api/slideApi";
+import slide404 from "../img/Slide404.png";
 
-import b1 from "../img/b1.webp";
-import b2 from "../img/b2.webp";
-import b3 from "../img/b3.webp";
-
-const images = [b1, b2, b3];
-
-const Collection = () => {
+const Collection = ({ area, title }) => {
   const [slides, setSlides] = useState([]);
-
+  const [loading, setLoading] = useState(true); // trạng thái loading
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [swiperRef, setSwiperRef] = useState(null);
   useEffect(() => {
     const fetchSlides = async () => {
-      const result = await getSlidesByArea("popup");
-      setSlides(result);
+      try {
+        const result = await getSlidesByArea(area);
+        setSlides(result);
+      } catch (error) {
+        console.error("Lỗi khi tải slide:", error);
+      } finally {
+        setLoading(false); // kết thúc loading dù thành công hay lỗi
+      }
     };
 
     fetchSlides();
-  }, []);
+  }, [area]);
+  const handleTitleClick = (index) => {
+    setActiveIndex(index);
+    swiperRef?.slideToLoop(index); // slideToLoop để hoạt động đúng với loop
+  };
+
   return (
     <div className="collection">
-      <div className="d-flex justify-content-start collection-title">
-        <h2>BST POLO COOL 2025</h2>
+      <div className="d-flex justify-content-start flex-wrap collection-title mb-3">
+        {slides?.map((slide, index) => (
+          <button
+            key={index}
+            onClick={() => handleTitleClick(index)}
+            className={`collection-tab-button ${
+              activeIndex === index ? "active" : ""
+            }`}
+          >
+            {slide.title || `Slide ${index + 1}`}
+          </button>
+        ))}
       </div>
-      <div className="collection-content">
-        <Swiper
-          modules={[Navigation]}
-          navigation
-          centeredSlides
-          slidesPerView={1}
-          loop={true}
-          spaceBetween={20}
-          autoplay={{
-            delay: 2000, // Chuyển đổi mỗi 2 giây
-            disableOnInteraction: false, // Tự động quay lại sau khi người dùng tương tác
-          }}
-        >
-          {slides?.map((img, index) => (
-            <SwiperSlide key={index}>
-              <a key={img.id} href={img.link}>
-                <img
-                  src={`https://finlyapi-production.up.railway.app/uploads/${img.image}`}
-                  alt={`Slide ${index}`}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    borderRadius: "10px",
-                  }}
-                />
-              </a>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+
+      <div
+        className="collection-content position-relative"
+        style={{ minHeight: "200px" }}
+      >
+        {loading ? (
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{ height: 200 }}
+          >
+            <Spinner animation="border" variant="warning" />
+          </div>
+        ) : (
+          <Swiper
+            modules={[Navigation, Autoplay]}
+            navigation
+            centeredSlides
+            slidesPerView={1}
+            loop={true}
+            spaceBetween={20}
+            onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
+            onSwiper={(swiper) => setSwiperRef(swiper)}
+            autoplay={{
+              delay: 4000,
+              disableOnInteraction: false,
+            }}
+          >
+            {slides?.map((img, index) => (
+              <SwiperSlide key={index}>
+                <a key={img.id || index} href={img.link || "#"}>
+                  <img
+                    src={
+                      img.image
+                        ? `https://finlyapi-production.up.railway.app/uploads/${img.image}`
+                        : slide404
+                    }
+                    alt={`Slide ${index}`}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: "10px",
+                    }}
+                    onError={(e) => (e.target.src = slide404)}
+                  />
+                </a>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
       </div>
     </div>
   );

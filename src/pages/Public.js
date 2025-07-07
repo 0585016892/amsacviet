@@ -15,18 +15,24 @@ const Public = () => {
   }
   return (
     <div
-      className=" position-relative h-screen bg-main-300"
+      className="d-flex flex-column min-vh-100 bg-main-300"
       style={{ width: "100%" }}
     >
       <div className="position-absolute" style={{ zIndex: "9999999999999" }}>
         <ChatBox userId={userId} />
       </div>
-      <div className="container-fluid " style={{ background: "transparent" }}>
+
+      {/* Header */}
+      <div className="container-fluid" style={{ background: "transparent" }}>
         <Header />
       </div>
-      <div>
+
+      {/* Content chính */}
+      <div className="flex-grow-1">
         <Outlet />
       </div>
+
+      {/* Footer luôn nằm dưới */}
       <Footer />
     </div>
   );
