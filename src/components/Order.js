@@ -79,19 +79,33 @@ const Order = () => {
   const [paymentMethod, setPaymentMethod] = useState("COD");
   // Lấy danh sách tỉnh
   useEffect(() => {
-    fetch("https://provinces.open-api.vn/api/?depth=1")
+    fetch("https://api.vnappmob.com/api/v2/province/")
       .then((res) => res.json())
-      .then(setProvinces)
-      .catch((err) => setSuccessMsg("Lỗi tải tỉnh:", err));
+      .then((data) => {
+        if (Array.isArray(data.results)) {
+          setProvinces(data.results);
+        } else {
+          setProvinces([]); // fallback để tránh lỗi .map
+        }
+      })
+      .catch((err) => {
+        setProvinces([]); // fallback
+      });
   }, []);
 
   // Lấy danh sách quận/huyện khi chọn tỉnh
   useEffect(() => {
     if (selectedProvince) {
-      fetch(`https://provinces.open-api.vn/api/p/${selectedProvince}?depth=2`)
+      fetch(`https://api.vnappmob.com/api/v2/district/${selectedProvince}`)
         .then((res) => res.json())
-        .then((data) => setDistricts(data.districts))
-        .catch((err) => setSuccessMsg("Lỗi tải quận/huyện:", err));
+        .then((data) => {
+          if (Array.isArray(data.results)) {
+            setDistricts(data.results);
+          } else {
+            setDistricts([]); // fallback để tránh lỗi .map
+          }
+        })
+        .catch((err) => setSuccessMsg("Lỗi tải quận/huyện: " + err));
     } else {
       setDistricts([]);
       setWards([]);
@@ -101,10 +115,10 @@ const Order = () => {
   // Lấy danh sách phường/xã khi chọn huyện
   useEffect(() => {
     if (selectedDistrict) {
-      fetch(`https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`)
+      fetch(`https://api.vnappmob.com/api/v2/ward/${selectedDistrict}`)
         .then((res) => res.json())
-        .then((data) => setWards(data.wards))
-        .catch((err) => setSuccessMsg("Lỗi tải phường/xã:", err));
+        .then((data) => setWards(data.results))
+        .catch((err) => setSuccessMsg("Lỗi tải phường/xã: " + err));
     } else {
       setWards([]);
     }
@@ -165,12 +179,13 @@ const Order = () => {
     }
 
     const provinceName =
-      provinces.find((p) => p.code === Number(selectedProvince))?.name || "";
-    const districtName =
-      districts.find((d) => d.code === Number(selectedDistrict))?.name || "";
-    const wardName =
-      wards.find((w) => w.code === Number(selectedWard))?.name || "";
-    const fullAddress = `${wardName}, ${districtName}, ${provinceName}`;
+    provinces.find((p) => p.province_id === selectedProvince)?.province_name || "";
+  const districtName =
+    districts.find((d) => d.district_id === selectedDistrict)?.district_name || "";
+  const wardName =
+    wards.find((w) => w.ward_id === selectedWard)?.ward_name || "";
+  
+  const fullAddress = `${wardName}, ${districtName}, ${provinceName}`;
 
     const detailedItems = orderItems?.map((item) => ({
       product_id: item.id,
@@ -195,7 +210,6 @@ const Order = () => {
       payment_method: paymentMethod,
       status: paymentMethod === "COD" ? "Chờ xử lý" : "Đang chờ thanh toán",
     };
-console.log(orderData);
 
     if (selectedCoupon) {
       orderData.coupon_id = selectedCoupon.id;
@@ -354,11 +368,11 @@ console.log(orderData);
                           onChange={(e) => setSelectedProvince(e.target.value)}
                         >
                           <option value="">-- Chọn Tỉnh/Thành phố --</option>
-                          {provinces?.map((province) => (
-                            <option key={province.code} value={province.code}>
-                              {province.name}
-                            </option>
-                          ))}
+                          {provinces.map((province) => (
+                              <option key={province.province_id} value={province.province_id}>
+                                {province.province_name}
+                              </option>
+                            ))}
                         </select>
                       </div>
 
@@ -370,9 +384,9 @@ console.log(orderData);
                           disabled={!selectedProvince}
                         >
                           <option value="">-- Chọn Quận/Huyện --</option>
-                          {districts?.map((district) => (
-                            <option key={district.code} value={district.code}>
-                              {district.name}
+                          {districts.map((district) => (
+                            <option key={district.district_id} value={district.district_id}>
+                              {district.district_name}
                             </option>
                           ))}
                         </select>
@@ -386,9 +400,9 @@ console.log(orderData);
                           disabled={!selectedDistrict}
                         >
                           <option value="">-- Chọn Phường/Xã --</option>
-                          {wards?.map((ward) => (
-                            <option key={ward.code} value={ward.code}>
-                              {ward.name}
+                          {wards.map((ward) => (
+                            <option key={ward.ward_id} value={ward.ward_id}>
+                              {ward.ward_name}
                             </option>
                           ))}
                         </select>
