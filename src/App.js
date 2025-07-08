@@ -1,6 +1,8 @@
 import "./App.css";
 import React from "react";
 import {
+  BlogDetail,
+  BlogLayout,
   Cart,
   Category,
   Loading,
@@ -33,6 +35,8 @@ function App() {
             <Route path="/search" element={<Search />} />
             <Route path="/vnpay-return" element={<VnpayReturn />} />
             <Route path="/server-down" element={<ServerDown />} />
+            <Route path="/blog" element={<BlogLayout />} />
+            <Route path="/blog/:slug" element={<BlogDetail />} />
           </Route>
         </Routes>
       </CartProvider>

@@ -13,3 +13,5 @@ export { default as Proflie } from "./Proflie";
 export { default as Login } from "./Login";
 export { default as ServerDown } from "./ServerDown";
 export { default as Loading } from "./Loading";
+export { default as BlogLayout } from "./BlogLayout";
+export { default as BlogDetail } from "./BlogDetail";
