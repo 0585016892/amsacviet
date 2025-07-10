@@ -44,12 +44,12 @@ const BlogDetail = () => {
           </li>
                     <li className="breadcrumb-item active" aria-current="page">
                     <a href="/blog" style={{ textDecoration: "none" }}>
-                    Blog
+              Blog
             </a>
           
           </li>
           <li className="breadcrumb-item active" aria-current="page">
-            Chi tiết
+            Chi tiết bài viết
           </li>
         </ol>
       </div>
