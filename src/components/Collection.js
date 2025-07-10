@@ -34,17 +34,17 @@ const Collection = ({ area, title }) => {
   return (
     <div className="collection">
       <div className="d-flex justify-content-start flex-wrap collection-title mb-3">
-        {slides?.map((slide, index) => (
+      {slides?.map((slide, index) =>
+        slide.status === "active" && (
           <button
             key={index}
             onClick={() => handleTitleClick(index)}
-            className={`collection-tab-button ${
-              activeIndex === index ? "active" : ""
-            }`}
+            className={`collection-tab-button ${activeIndex === index ? "active" : ""}`}
           >
             {slide.title || `Slide ${index + 1}`}
           </button>
-        ))}
+        )
+      )}
       </div>
 
       <div
@@ -73,26 +73,28 @@ const Collection = ({ area, title }) => {
               disableOnInteraction: false,
             }}
           >
-            {slides?.map((img, index) => (
-              <SwiperSlide key={index}>
-                <a key={img.id || index} href={img.link || "#"}>
-                  <img
-                    src={
-                      img.image
-                        ? `https://finlyapi-production.up.railway.app/uploads/${img.image}`
-                        : slide404
-                    }
-                    alt={`Slide ${index}`}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      borderRadius: "10px",
-                    }}
-                    onError={(e) => (e.target.src = slide404)}
-                  />
-                </a>
-              </SwiperSlide>
+              {slides?.map((img, index) => (
+                img.status === 'active' && (
+                  <SwiperSlide key={index}>
+                  <a key={img.id || index} href={img.link || "#"}>
+                    <img
+                      src={
+                        img.image
+                          ? `https://finlyapi-production.up.railway.app/uploads/${img.image}`
+                          : slide404
+                      }
+                      alt={`Slide ${index}`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: "10px",
+                      }}
+                      onError={(e) => (e.target.src = slide404)}
+                    />
+                  </a>
+                </SwiperSlide>
+                )
             ))}
           </Swiper>
         )}

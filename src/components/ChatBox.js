@@ -182,8 +182,8 @@ const ChatBox = ({ userId }) => {
           onClick={toggleChatBox}
           style={{
             position: "fixed",
-            bottom: 20,
-            right: 20,
+            bottom: 115,
+            right: 51,
             borderRadius: "50%",
             width: 60,
             height: 60,

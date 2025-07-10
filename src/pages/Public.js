@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { Header, Footer, ChatBox } from "../components";
+import { Header, Footer, ChatBox, ZaloChat } from "../components";
 const Public = () => {
   let userId = null;
   const storedUser = localStorage.getItem("user");
@@ -21,7 +21,7 @@ const Public = () => {
       <div className="position-absolute" style={{ zIndex: "9999999999999" }}>
         <ChatBox userId={userId} />
       </div>
-
+      
       {/* Header */}
       <div className="container-fluid" style={{ background: "transparent" }}>
         <Header />
