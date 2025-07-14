@@ -15,6 +15,8 @@ import { Loading } from "../components";
 import { showSuccessToast, showErrorToast } from "../utils/toastUtils";
 
 const Product = () => {
+  const URL = process.env.REACT_APP_WEB_URL; 
+
   const { addToCart } = useCart();
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
@@ -223,7 +225,7 @@ const Product = () => {
                     (img, idx) => (
                       <Image
                         key={idx}
-                        src={`https://finlyapi-production.up.railway.app/uploads/${img}`}
+                        src={`${URL}/uploads/${img}`}
                         thumbnail
                         style={{
                           width: "100px",
@@ -243,7 +245,7 @@ const Product = () => {
                 </div>
                 <div className="main-image">
                   <img
-                    src={`https://finlyapi-production.up.railway.app/uploads/${selectedImage}`}
+                    src={`${URL}/uploads/${selectedImage}`}
                     alt={product.name}
                   />
                 </div>
@@ -442,7 +444,7 @@ const Product = () => {
                 <div>{product.description}</div>
                 <img
                   style={{ objectFit: "cover", width: "100%" }}
-                  src={`https://finlyapi-production.up.railway.app/uploads/${product.image}`}
+                  src={`${URL}/uploads/${product.image}`}
                   alt={product.name}
                 />
               </div>
@@ -464,7 +466,7 @@ const Product = () => {
             <div className="card-body d-flex align-items-center">
               <div className="me-3">
                 <img
-                  src={`https://finlyapi-production.up.railway.app/uploads/${product.image}`}
+                  src={`${URL}/uploads/${product.image}`}
                   alt="Product Image"
                   className="rounded"
                   style={{ width: "100%", height: "80px", objectFit: "cover" }}

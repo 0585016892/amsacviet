@@ -8,6 +8,7 @@ import { getSlidesByArea } from "../api/slideApi";
 import slide404 from "../img/Slide404.png";
 
 const Collection = ({ area, title }) => {
+  const URL = process.env.REACT_APP_WEB_URL; 
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true); // trạng thái loading
   const [activeIndex, setActiveIndex] = useState(0);
@@ -80,7 +81,7 @@ const Collection = ({ area, title }) => {
                     <img
                       src={
                         img.image
-                          ? `https://finlyapi-production.up.railway.app/uploads/${img.image}`
+                          ? `${URL}/uploads/${img.image}`
                           : slide404
                       }
                       alt={`Slide ${index}`}

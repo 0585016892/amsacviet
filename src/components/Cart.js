@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
 const Cart = () => {
+  const URL = process.env.REACT_APP_WEB_URL; 
   const [cartItems, setCartItems] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState(null);
@@ -169,7 +170,7 @@ const Cart = () => {
                     <Col md={3} xs={4}>
                       {item.image && (
                         <Image
-                          src={`https://finlyapi-production.up.railway.app/uploads/${item.image}`}
+                          src={`${URL}/uploads/${item.image}`}
                           alt={item.name}
                           className="rounded cart__img"
                         />

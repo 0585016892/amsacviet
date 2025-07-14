@@ -11,9 +11,10 @@ import { FiXCircle } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 const Order = () => {
-  const API_URL_USER = "http://localhost:5000/api/";
   const { user } = useAuth();
-
+  const URL = process.env.REACT_APP_WEB_URL; 
+  const URL_API = process.env.REACT_APP_API_URL; 
+  
   const { clearOrder } = useCart();
   const [orderItems, setOrderItems] = useState([]);
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ const Order = () => {
   useEffect(() => {
     axios
       .get(
-        "https://finlyapi-production.up.railway.app/api/coupons?description=0"
+        `${URL_API}/coupons?description=0`
       )
       .then((res) => {
         const filteredCoupons = res.data.coupons.filter(
@@ -230,7 +231,7 @@ const Order = () => {
       if (paymentMethod === "COD") {
         // Gửi đơn hàng luôn
         const res = await fetch(
-          "https://finlyapi-production.up.railway.app/api/orders/add",
+          `${URL_API}/orders/add`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -243,7 +244,7 @@ const Order = () => {
         if (res.ok) {
           if (selectedCoupon) {
             await fetch(
-              `https://finlyapi-production.up.railway.app/api/coupons/use/${selectedCoupon.id}`,
+              `${URL_API}/coupons/use/${selectedCoupon.id}`,
               {
                 method: "PATCH",
               }
@@ -262,7 +263,7 @@ const Order = () => {
       } else if (paymentMethod === "VNPAY") {
         // Gọi API tạo link thanh toán
         const res = await fetch(
-          "https://finlyapi-production.up.railway.app/api/orders/create-vnpay",
+          `${URL_API}/orders/create-vnpay`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -455,10 +456,10 @@ const Order = () => {
             <div className="card p-3 mb-3">
               <h5>Chi tiết đơn hàng</h5>
               {orderItems?.map((item, index) => (
-                <div key={index}>
+                <div key={`${item.id}-${item.size}-${item.color}`}>
                   <div className="d-flex align-items-center mb-2">
                     <img
-                      src={`https://finlyapi-production.up.railway.app/uploads/${item.image}`}
+                      src={`${URL}/uploads/${item.image}`}
                       alt="Product"
                       className="me-2"
                       style={{

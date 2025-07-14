@@ -6,6 +6,7 @@ import { searchProducts } from "../api/sanphamWebApi";
 const Search = () => {
   const [error, setError] = useState(null);
   const [sortType, setSortType] = useState("discount"); // "discount" | "newest" | "priceAsc" | "priceDesc"
+  const URL = process.env.REACT_APP_WEB_URL; 
 
   const colorMapping = {
     Đen: "#000000",
@@ -60,7 +61,7 @@ const Search = () => {
       <div className="product-image">
         <Link to={`/product/${product.slug}`}>
           <img
-            src={`https://finlyapi-production.up.railway.app/uploads/${product.image}`}
+            src={`${URL}/uploads/${product.image}`}
             alt={product.name}
           />
         </Link>

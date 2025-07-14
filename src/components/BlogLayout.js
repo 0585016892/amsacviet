@@ -7,6 +7,7 @@ import {  Spinner } from "react-bootstrap";
   
   const BlogLayout = () => {
     const [posts, setPosts] = useState([]);
+    const URL = process.env.REACT_APP_WEB_URL; 
 
     useEffect(() => {
       const fetchPosts = async () => {
@@ -57,7 +58,7 @@ import {  Spinner } from "react-bootstrap";
               <Card className="shadow-sm border-0">
                 <Card.Img
                   variant="top"
-                  src={`https://finlyapi-production.up.railway.app${latestPost.image}`}
+                  src={`${URL}${latestPost.image}`}
                   alt={latestPost.title}
                   style={{ height: 'auto', objectFit: 'cover' }}
                 />
@@ -107,7 +108,7 @@ import {  Spinner } from "react-bootstrap";
                   className="d-flex text-decoration-none text-dark"
                 >
                   <Image
-                    src={`https://finlyapi-production.up.railway.app${post.images[0]}`}
+                    src={`${URL}${post.images[0]}`}
                     rounded
                     thumbnail
                     className="me-3"

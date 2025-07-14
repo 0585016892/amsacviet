@@ -11,6 +11,7 @@ import { getActiveFooters } from "../api/footerApi";
 import { getSlidesByArea } from "../api/slideApi";
 
 const Footer = () => {
+  const URL = process.env.REACT_APP_WEB_URL; 
   const [footer, setFooter] = useState([]);
   const [hasError, setHasError] = useState(false);
   const navigate = useNavigate();
@@ -162,7 +163,7 @@ const Footer = () => {
                   footer.status === "active" ? (
                     <img
                       key={footer.id}
-                      src={`https://finlyapi-production.up.railway.app/uploads/${footer.image}`}
+                      src={`${URL}}/uploads/${footer.image}`}
                       height={150}
                       width={150}
                       alt=""

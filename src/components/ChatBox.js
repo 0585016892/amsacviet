@@ -27,7 +27,7 @@ const ChatBox = ({ userId }) => {
   useEffect(() => {
     if (!userId) return;
 
-    const socket = io("https://finlyapi-production.up.railway.app", {
+    const socket = io("http://localhost:5000", {
       transports: ["websocket"],
     });
 
@@ -154,6 +154,8 @@ const ChatBox = ({ userId }) => {
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
   function formatMessage(content) {
+    if (typeof content !== "string") return ""; // 👉 Phòng lỗi undefined
+  
     // Tự động phát hiện URL và tạo thẻ <a> có màu xanh
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const linkedText = content.replace(
@@ -161,10 +163,11 @@ const ChatBox = ({ userId }) => {
       (url) =>
         `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #007bff; text-decoration: underline;">${url}</a>`
     );
-
+  
     // Đổi xuống dòng nếu có \n
     return linkedText.replace(/\n/g, "<br/>");
   }
+  
   //kh gửi ảnh
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -331,9 +334,10 @@ const ChatBox = ({ userId }) => {
                   >
                     <div
                       dangerouslySetInnerHTML={{
-                        __html: formatMessage(msg.content),
+                        __html: formatMessage(msg?.content),
                       }}
                     />
+
                     <div
                       style={{
                         fontSize: "0.65rem",
@@ -498,7 +502,7 @@ const ChatBox = ({ userId }) => {
           <div className="card-body d-flex align-items-center">
             <div className="me-3">
               <img
-                src={`https://finlyapi-production.up.railway.app/uploads/${addedProduct.image}`}
+                src={`http://localhost:5000/uploads/${addedProduct.image}`}
                 alt="Product Image"
                 className="rounded"
                 style={{ width: "100%", height: "80px", objectFit: "cover" }}

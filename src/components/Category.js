@@ -7,6 +7,7 @@ import { FaArrowUpShortWide, FaArrowUpWideShort } from "react-icons/fa6";
 import { Loading } from "../components";
 import { getAllColors } from "../api/colorApi";
 const Category = () => {
+  const URL = process.env.REACT_APP_WEB_URL; 
   const { slug } = useParams();
   const [categoryData, setCategoryData] = useState(null);
   const [error, setError] = useState(null);
@@ -76,7 +77,7 @@ const Category = () => {
         )}
         <Link to={`/product/${product.slug}`}>
           <img
-            src={`https://finlyapi-production.up.railway.app/uploads/${product.image}`}
+            src={`${URL}/uploads/${product.image}`}
             alt={product.name}
             style={{
               opacity: loading ? 0.5 : 1,

@@ -5,6 +5,8 @@ import { getSlidesByArea } from "../api/slideApi";
 import slide404 from "../img/Slide404.png";
 
 const Slider = () => {
+  const URL = process.env.REACT_APP_WEB_URL; // Cập nhật URL nếu khác
+
   const [slides, setSlides] = useState([]);
   const [hasError, setHasError] = useState(false);
   const [loadingImages, setLoadingImages] = useState({});
@@ -54,7 +56,7 @@ const Slider = () => {
           className="d-block w-100"
           src={
             slide.image
-              ? `https://finlyapi-production.up.railway.app/uploads/${slide.image}`
+              ? `${URL}/uploads/${slide.image}`
               : slide404
           }
           alt="Slide"

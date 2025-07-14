@@ -5,6 +5,7 @@ import { Container, Row, Col, Accordion, Card } from "react-bootstrap";
 import {  Spinner } from "react-bootstrap";
 
 const BlogDetail = () => {
+  const URL = process.env.REACT_APP_WEB_URL; 
   const { slug } = useParams();
   const [post, setPost] = useState(null);
 
@@ -64,7 +65,7 @@ const BlogDetail = () => {
           </p>
 
           <img
-            src={`https://finlyapi-production.up.railway.app${post.image}`}
+            src={`${URL}${post.image}`}
             alt={post.title}
             className="img-fluid rounded mb-4"
           />
@@ -76,7 +77,7 @@ const BlogDetail = () => {
                   {/* Hiển thị ảnh sau đoạn 1 và 2 nếu có */}
                   {post.images[index] && (
                     <img
-                      src={`https://finlyapi-production.up.railway.app${post.images[index]}`}
+                      src={`${URL}${post.images[index]}`}
                       alt={`ảnh ${index}`}
                       style={{ width: "100%", maxWidth: "600px", display: "block", margin: "1rem auto" }}
                     />
