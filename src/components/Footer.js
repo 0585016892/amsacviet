@@ -63,8 +63,8 @@ const Footer = () => {
   return (
     <div style={{ background: "#111928", marginTop: "60px" }}>
       <div className="d-flex justify-content-center footer-a ">
-        <div className="d-flex justify-content-center contact_b">
-          <Row>
+        <div className="d-flex justify-space-beetween contact_b">
+          <Row className="w-100">
             <Col xs={12} md={6}>
               {footerItems?.map((section, idx) => {
                 if (section.type === "hi") {
@@ -163,7 +163,7 @@ const Footer = () => {
                   footer.status === "active" ? (
                     <img
                       key={footer.id}
-                      src={`${URL}}/uploads/${footer.image}`}
+                      src={`${URL}/uploads/${footer.image}`}
                       height={150}
                       width={150}
                       alt=""

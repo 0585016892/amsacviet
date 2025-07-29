@@ -6,7 +6,7 @@ import { MdOutlineLocalShipping } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-
+import { BsCartX } from "react-icons/bs";
 const Cart = () => {
   const URL = process.env.REACT_APP_WEB_URL; 
   const [cartItems, setCartItems] = useState([]);
@@ -285,7 +285,21 @@ const Cart = () => {
                   </Row>
                 </div>
               ))}
-              {cartItems.length === 0 && <p>Giỏ hàng của bạn đang trống.</p>}
+              
+                {cartItems.length === 0 && (
+                  <div className="text-center my-4">
+                    <BsCartX
+                      size={50}
+                      style={{
+                        color: "#ff4d4f", // màu đỏ nổi bật
+                        marginBottom: "10px",
+                        animation: "bounce 1s infinite",
+                      }}
+                    />
+                    <p style={{ color: "#888" }}>Giỏ hàng của bạn đang trống.</p>
+                  </div>
+                )}
+
             </div>
           </Col>
           <Col md={4}>
