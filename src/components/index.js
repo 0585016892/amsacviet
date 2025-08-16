@@ -16,3 +16,4 @@ export { default as Loading } from "./Loading";
 export { default as BlogLayout } from "./BlogLayout";
 export { default as BlogDetail } from "./BlogDetail";
 export { default as ZaloChat } from "./ZaloChat";
+export { default as HomeHero } from "./HomeHero";

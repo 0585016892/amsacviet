@@ -13,6 +13,7 @@ import { getAllColors } from "../api/colorApi";
 import { useCart } from "../context/CartContext";
 import { Loading } from "../components";
 import { showSuccessToast, showErrorToast } from "../utils/toastUtils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Product = () => {
   const URL = process.env.REACT_APP_WEB_URL; 
@@ -244,10 +245,15 @@ const Product = () => {
                   )}
                 </div>
                 <div className="main-image">
-                  <img
-                    src={`${URL}/uploads/${selectedImage}`}
-                    alt={product.name}
-                  />
+                  <motion.img
+                        key={selectedImage} // để khi đổi ảnh nó animate lại
+                        src={`${URL}/uploads/${selectedImage}`}
+                        alt={product.name}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.4 }}
+                        whileHover={{ scale: 1.05 }}
+                      />
                 </div>
               </div>
             </Col>
@@ -382,12 +388,14 @@ const Product = () => {
                         </div>
                       </Col>
                       <Col md={9} xs={8}>
-                        <button
+                       <motion.button
                           className="add-to-cart-button"
                           onClick={handleAddToCart}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
                         >
                           Thêm vào giỏ
-                        </button>
+                        </motion.button>
                       </Col>
                     </Row>
                   </div>
@@ -395,9 +403,19 @@ const Product = () => {
 
                 <div className="yody-camket">
                   <h2>Finly cam kết</h2>
-                  <ul>
+                  <motion.ul
+                  initial="hidden"
+                      animate="show"
+                      variants={{
+                        hidden: { opacity: 0 },
+                        show: {
+                          opacity: 1,
+                          transition: { staggerChildren: 0.2 }
+                        }
+                      }}
+                  >
                     {product.yodyCamKet?.map((item, index) => (
-                      <li
+                      <motion.li
                         style={{
                           border: "1px solid #e5d5d5",
                           borderRadius: "5px",
@@ -406,6 +424,7 @@ const Product = () => {
                           display: "flex",
                         }}
                         key={index}
+                        variants={{ hidden: { y: 20, opacity: 0 }, show: { y: 0, opacity: 1 } }}
                       >
                         <div
                           className="d-flex "
@@ -420,9 +439,9 @@ const Product = () => {
                           {item.icon}
                         </div>
                         <p> {item.text}</p>
-                      </li>
+                      </motion.li>
                     ))}
-                  </ul>
+                  </motion.ul>
                 </div>
               </div>
             </Col>
@@ -437,7 +456,12 @@ const Product = () => {
                 <p style={{ fontSize: "20px", fontWeight: "600" }}>
                   Mô tả sản phẩm
                 </p>
-                <MdAddCircleOutline />
+                <motion.div
+                  animate={{ rotate: showDes ? 45 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <MdAddCircleOutline />
+                </motion.div>
               </button>
 
               <div className={`toggle-description ${showDes ? "show" : ""}`}>
@@ -451,8 +475,14 @@ const Product = () => {
             </div>
           </Col>
         </Row>
+        <AnimatePresence>
         {showNotification && addedProduct && (
-          <div className="notification show">
+            <motion.div
+               initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="notification show">
             <div className="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center">
               <h6 className="mb-0">Đã thêm vào giỏ hàng</h6>
               <button
@@ -502,8 +532,10 @@ const Product = () => {
                 Xem giỏ hàng
               </Link>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
+
       </Container>
     </div>
   );

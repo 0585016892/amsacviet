@@ -18,7 +18,7 @@ import {
 import userApi from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
 import { Loading } from "../components";
-
+import { motion, AnimatePresence } from "framer-motion";
 const Profile = () => {
   const { logout } = useAuth();
 
@@ -97,139 +97,186 @@ const Profile = () => {
       return () => clearTimeout(timer);
     }
   }, [passMsg]);
-  if (loading) {
-    return (
-      <Container
-        className="text-center mt-5 d-flex justify-content-center align-items-center"
-        style={{ height: 800 }}
-      >
-        <Loading />
-      </Container>
-    );
-  }
+if (loading) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+      className="d-flex justify-content-center align-items-center"
+      style={{ height: 800 }}
+    >
+      <Loading />
+    </motion.div>
+  );
+}
   return (
     <Container className="profile" style={{ height: "800px" }}>
-      <h3 className="mb-4 text-primary fw-bold">Thông tin cá nhân</h3>
-      {passMsg && (
-        <Alert
-          variant={
-            passMsg.toLowerCase().includes("không") ? "danger" : "success"
-          }
-          className="py-2 px-3"
-        >
-          {passMsg}
-        </Alert>
-      )}
+      <motion.h3
+        className="mb-4 text-primary fw-bold"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        Thông tin cá nhân
+      </motion.h3>
+      <AnimatePresence>
+        {passMsg && (
+           <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+    >
+            <Alert
+                  variant={
+                    passMsg.toLowerCase().includes("không") ? "danger" : "success"
+                  }
+                  className="py-2 px-3"
+                >
+                  {passMsg}
+                </Alert>
+    </motion.div>
+                
+              )}
+      </AnimatePresence>
+      
       <Tabs defaultActiveKey="info" id="profile-tabs" className="mb-4">
         <Tab eventKey="info" title="Thông tin chi tiết">
-          <Card className="shadow-sm p-3 border-primary">
-            <Card.Body>
-              <Row className="mb-3">
-                <Col md={6} className="m-2 m-md-0">
-                  <strong>Họ tên:</strong> {user?.full_name}
-                </Col>
-                <Col md={6} className="m-2 m-md-0">
-                  <strong>Email:</strong> {user?.email}
-                </Col>
-              </Row>
-              <Row className="mb-3">
-                <Col md={6} className="m-2 m-md-0">
-                  <strong>Số điện thoại:</strong> {user?.phone}
-                </Col>
-                <Col md={6} className="m-2 m-md-0">
-                  <strong>Địa chỉ:</strong> {user?.address}
-                </Col>
-              </Row>
-              <hr />
-              <div className="d-flex flex-wrap gap-2 mt-3">
-                <Button
-                  variant="outline-info"
-                  onClick={() => setShowUpdateModal(true)}
+          <motion.div
+              key="info-tab"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              transition={{ duration: 0.4 }}
+                    >
+                      <Card className="shadow-sm p-3 border-primary">
+                      <Card.Body>
+                        <Row className="mb-3">
+                          <Col md={6} className="m-2 m-md-0">
+                            <strong>Họ tên:</strong> {user?.full_name}
+                          </Col>
+                          <Col md={6} className="m-2 m-md-0">
+                            <strong>Email:</strong> {user?.email}
+                          </Col>
+                        </Row>
+                        <Row className="mb-3">
+                          <Col md={6} className="m-2 m-md-0">
+                            <strong>Số điện thoại:</strong> {user?.phone}
+                          </Col>
+                          <Col md={6} className="m-2 m-md-0">
+                            <strong>Địa chỉ:</strong> {user?.address}
+                          </Col>
+                        </Row>
+                        <hr />
+                       <motion.div
+                          className="d-flex flex-wrap gap-2 mt-3"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ staggerChildren: 0.2 }}
+                        >
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button variant="outline-info" onClick={() => setShowUpdateModal(true)}>
+                              Cập nhật thông tin
+                            </Button>
+                          </motion.div>
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button variant="outline-warning" onClick={() => setShowPasswordModal(true)}>
+                              Đổi mật khẩu
+                            </Button>
+                          </motion.div>
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Button variant="outline-danger" className="ms-md-auto" onClick={logout}>
+                              Đăng xuất
+                            </Button>
+                          </motion.div>
+                        </motion.div>
+                      </Card.Body>
+                    </Card>
+                    </motion.div>
+                  </Tab>
+                  <Tab eventKey="history" title="Lịch sử mua hàng">
+                    <OrderList orders={orderHistory} />
+                  </Tab>
+                  <Tab eventKey="pending" title="Đơn hàng đang đặt">
+                    <OrderList
+                      orders={pendingOrders.filter((o) =>
+                        ["Đang giao", "Chờ xử lý"].includes(o.status)
+                      )}
+                    />
+                  </Tab>
+                </Tabs>
+    <AnimatePresence>
+                  <motion.div
+                key="update-modal"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+                  >
+                                <Modal
+                  show={showUpdateModal}
+                  onHide={() => setShowUpdateModal(false)}
+                  centered
                 >
-                  Cập nhật thông tin
-                </Button>
-                <Button
-                  variant="outline-warning"
-                  onClick={() => setShowPasswordModal(true)}
-                >
-                  Đổi mật khẩu
-                </Button>
-                <Button
-                  variant="outline-danger"
-                  className="ms-md-auto"
-                  onClick={logout}
-                >
-                  Đăng xuất
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
-        </Tab>
-        <Tab eventKey="history" title="Lịch sử mua hàng">
-          <OrderList orders={orderHistory} />
-        </Tab>
-        <Tab eventKey="pending" title="Đơn hàng đang đặt">
-          <OrderList
-            orders={pendingOrders.filter((o) =>
-              ["Đang giao", "Chờ xử lý"].includes(o.status)
-            )}
-          />
-        </Tab>
-      </Tabs>
-
-      <Modal
-        show={showUpdateModal}
-        onHide={() => setShowUpdateModal(false)}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Cập nhật thông tin</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Họ tên</Form.Label>
-              <Form.Control
-                type="text"
-                value={updateForm.full_name}
-                onChange={(e) =>
-                  setUpdateForm({ ...updateForm, full_name: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Số điện thoại</Form.Label>
-              <Form.Control
-                type="text"
-                value={updateForm.phone}
-                onChange={(e) =>
-                  setUpdateForm({ ...updateForm, phone: e.target.value })
-                }
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Địa chỉ</Form.Label>
-              <Form.Control
-                type="text"
-                value={updateForm.address}
-                onChange={(e) =>
-                  setUpdateForm({ ...updateForm, address: e.target.value })
-                }
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowUpdateModal(false)}>
-            Hủy
-          </Button>
-          <Button variant="primary" onClick={handleUpdateProfile}>
-            Lưu thay đổi
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <Modal
+                  <Modal.Header closeButton>
+                    <Modal.Title>Cập nhật thông tin</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <Form>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Họ tên</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={updateForm.full_name}
+                          onChange={(e) =>
+                            setUpdateForm({ ...updateForm, full_name: e.target.value })
+                          }
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Số điện thoại</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={updateForm.phone}
+                          onChange={(e) =>
+                            setUpdateForm({ ...updateForm, phone: e.target.value })
+                          }
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Địa chỉ</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={updateForm.address}
+                          onChange={(e) =>
+                            setUpdateForm({ ...updateForm, address: e.target.value })
+                          }
+                        />
+                      </Form.Group>
+                    </Form>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowUpdateModal(false)}>
+                      Hủy
+                    </Button>
+                    <Button variant="primary" onClick={handleUpdateProfile}>
+                      Lưu thay đổi
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
+              </motion.div>
+          </AnimatePresence>
+      <AnimatePresence>
+          <motion.div
+      key="update-modal"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.3 }}
+        >
+           <Modal
         show={showPasswordModal}
         onHide={() => setShowPasswordModal(false)}
         centered
@@ -292,6 +339,9 @@ const Profile = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+    </motion.div>
+  </AnimatePresence>
+     
     </Container>
   );
 };
@@ -303,7 +353,13 @@ const OrderList = ({ orders }) => {
   return (
     <Accordion alwaysOpen>
       {orders?.map((order, index) => (
-        <Accordion.Item eventKey={index.toString()} key={order.id}>
+         <motion.div
+              key={order.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+                >
+              <Accordion.Item eventKey={index.toString()}>
           <Accordion.Header>
             <div className="w-100 d-flex justify-content-between flex-wrap align-items-center gap-2">
               <span className="fw-bold text-dark">Mã đơn: #{order.id}</span>
@@ -322,12 +378,15 @@ const OrderList = ({ orders }) => {
                   {Number(order.final_total || 0).toLocaleString("vi-VN")}₫
                 </span>
               </span>
-              <Badge
-                bg={getStatusColor(order.status)}
-                className="text-uppercase"
-              >
-                {order.status}
-              </Badge>
+              <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <Badge bg={getStatusColor(order.status)} className="text-uppercase">
+                    {order.status}
+                  </Badge>
+                </motion.span>
             </div>
           </Accordion.Header>
           <Accordion.Body>
@@ -341,20 +400,27 @@ const OrderList = ({ orders }) => {
                   <th>Màu</th>
                 </tr>
               </thead>
-              <tbody>
-                {order.items?.map((item, i) => (
-                  <tr key={i}>
-                    <td>{item.name}</td>
-                    <td>{item.quantity}</td>
-                    <td>{Number(item.price).toLocaleString("vi-VN")}₫</td>
-                    <td>{item.size || "-"}</td>
-                    <td>{item.color || "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
+             <tbody>
+                    {order.items?.map((item, i) => (
+                      <motion.tr
+                        key={i}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                      >
+                        <td>{item.name}</td>
+                        <td>{item.quantity}</td>
+                        <td>{Number(item.price).toLocaleString("vi-VN")}₫</td>
+                        <td>{item.size || "-"}</td>
+                        <td>{item.color || "-"}</td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
             </Table>
           </Accordion.Body>
         </Accordion.Item>
+    </motion.div>
+   
       ))}
     </Accordion>
   );

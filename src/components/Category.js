@@ -1,25 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { Container, Spinner } from "react-bootstrap";
-import { useParams } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { getCategoryData } from "../api/sanphamWebApi";
 import { FaArrowUpShortWide, FaArrowUpWideShort } from "react-icons/fa6";
 import { Loading } from "../components";
 import { getAllColors } from "../api/colorApi";
+import { motion } from "framer-motion"; // 👈 thêm framer-motion
+
 const Category = () => {
   const URL = process.env.REACT_APP_WEB_URL; 
   const { slug } = useParams();
   const [categoryData, setCategoryData] = useState(null);
   const [error, setError] = useState(null);
-  const [sortType, setSortType] = useState("discount"); // "discount" | "newest" | "priceAsc" | "priceDesc"
+  const [sortType, setSortType] = useState("discount"); 
   const [loading, setLoading] = useState(true);
   const [colors, setColors] = useState([]);
+const [visibleCount, setVisibleCount] = useState(4); // 👈 Load 8 sp đầu
   useEffect(() => {
     const fetchColors = async () => {
       const data = await getAllColors();
       setColors(data);
     };
-
     fetchColors();
   }, []);
 
@@ -35,7 +36,6 @@ const Category = () => {
         setLoading(false);
       }
     };
-
     fetchCategoryData();
   }, [slug]);
 
@@ -59,87 +59,161 @@ const Category = () => {
       </Container>
     );
   }
-  const renderProductItem = (product) => (
-    <div key={product.id} className="product-item">
-      <div className="product-image">
-        {loading && (
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 2,
-            }}
-          >
-            <Spinner animation="border" variant="primary" />
-          </div>
-        )}
+
+const renderProductItem = (product, index) => (
+  <motion.div
+    key={product.id}
+    initial={{ opacity: 0, y: 40 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: index * 0.1 }}
+    className="p-2"
+  >
+    <div
+      className="product-card h-100 d-flex flex-column"
+      style={{
+        borderRadius: "16px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+        overflow: "hidden",
+        transition: "all 0.3s ease",
+        background: "#fff",
+      }}
+      onMouseOver={(e) =>
+        (e.currentTarget.style.transform = "translateY(-6px)")
+      }
+      onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+    >
+      {/* Ảnh */}
+      <div className="position-relative">
         <Link to={`/product/${product.slug}`}>
           <img
             src={`${URL}/uploads/${product.image}`}
             alt={product.name}
+            className="w-100"
             style={{
-              opacity: loading ? 0.5 : 1,
-              transition: "opacity 0.3s ease",
+              height: "100%",
+              objectFit: "cover",
             }}
-            onLoad={() => setLoading(false)}
-            onError={() => setLoading(false)} // fallback nếu lỗi
           />
         </Link>
         {product.discount_value && (
-          <div className="discount-badge">
+          <span
+            className="position-absolute top-0 start-0 m-2 px-2 py-1 rounded"
+            style={{
+              background: "linear-gradient(135deg,#ff4e50,#f9d423)",
+              color: "#fff",
+              fontSize: "13px",
+              fontWeight: 600,
+            }}
+          >
             {product.discount_type === "percent"
-              ? `${parseInt(product.discount_value)}%`
+              ? `-${parseInt(product.discount_value)}%`
               : `-${product.discount_value.toLocaleString("vi-VN")}₫`}
-          </div>
+          </span>
         )}
       </div>
-      <div className="product-info">
-        <h3 className="product-name">{product.name}</h3>
-        <div className="product-price">
-          <span className="current-price">
+
+      {/* Nội dung */}
+      <div className="p-3 flex-grow-1 d-flex flex-column">
+        {/* Tên */}
+        <h6
+          className="fw-semibold text-truncate mb-2"
+          style={{ fontSize: "15px" }}
+          title={product.name}
+        >
+          {product.name}
+        </h6>
+
+        {/* Giá */}
+        <div className="mb-2">
+          <span
+            style={{
+              fontSize: "16px",
+              fontWeight: 700,
+              background: "linear-gradient(90deg,#ff512f,#dd2476)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
             {(() => {
               const price = Number(product.price);
               let finalPrice = price;
-
               if (product.discount_type === "percent") {
                 finalPrice = price * (1 - Number(product.discount_value) / 100);
               } else if (product.discount_type === "fixed") {
                 finalPrice = price - Number(product.discount_value);
               }
-
               return `${Math.max(0, Math.round(finalPrice)).toLocaleString(
                 "vi-VN"
               )}đ`;
             })()}
           </span>
           {product.originalPrice && (
-            <span className="original-price">
+            <span
+              className="ms-2 text-muted"
+              style={{
+                textDecoration: "line-through",
+                fontSize: "13px",
+              }}
+            >
               {product.originalPrice.toLocaleString()}₫
             </span>
           )}
         </div>
-        <div className="product-colors">
-          {product.color.split(",")?.map((colorName) => {
+
+        {/* Màu */}
+        <div className="d-flex gap-2 mt-auto">
+          {product.color.split(",")?.map((colorName, i) => {
             const matchedColor = colors.find(
               (color) =>
                 color.name.toLowerCase().trim() ===
                 colorName.toLowerCase().trim()
             );
-            const colorCode = matchedColor ? matchedColor.code : "#000000"; // fallback màu đen nếu không có
+            const colorCode = matchedColor ? matchedColor.code : "#000000";
             return (
               <span
-                key={colorName}
-                className="color-swatch"
-                style={{ backgroundColor: colorCode }}
+                key={i}
+                title={colorName}
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderRadius: "50%",
+                  backgroundColor: colorCode,
+                  border: "2px solid #fff",
+                  boxShadow: "0 0 3px rgba(0,0,0,0.3)",
+                  cursor: "pointer",
+                  transition: "transform 0.2s ease",
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.2)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
               ></span>
             );
           })}
         </div>
       </div>
     </div>
-  );
+  </motion.div>
+);
+ // Sắp xếp sản phẩm
+  const sortedProducts = categoryData?.products
+    ?.filter((p) => Number(p.quantity) > 0)
+    ?.sort((a, b) => {
+      switch (sortType) {
+        case "discount":
+          return (b.discount || 0) - (a.discount || 0);
+        case "newest":
+          return new Date(b.created_at) - new Date(a.created_at);
+        case "priceAsc":
+          return a.price - b.price;
+        case "priceDesc":
+          return b.price - a.price;
+        default:
+          return 0;
+      }
+    });
 
   return (
     <div className="category-page">
@@ -190,25 +264,10 @@ const Category = () => {
         </div>
       </div>
       <div className="product-list" style={{ padding: "0 16px" }}>
-        {categoryData?.products?.filter((p) => Number(p.quantity) > 0)?.length >
-        0 ? (
-          categoryData.products
-            .filter((product) => Number(product.quantity) > 0)
-            .sort((a, b) => {
-              switch (sortType) {
-                case "discount":
-                  return (b.discount || 0) - (a.discount || 0);
-                case "newest":
-                  return new Date(b.created_at) - new Date(a.created_at);
-                case "priceAsc":
-                  return a.price - b.price;
-                case "priceDesc":
-                  return b.price - a.price;
-                default:
-                  return 0;
-              }
-            })
-            .map(renderProductItem)
+        {sortedProducts?.length > 0 ? (
+          sortedProducts.slice(0, visibleCount).map((p, i) =>
+            renderProductItem(p, i)
+          )
         ) : (
           <div
             className="d-flex flex-column align-items-center justify-content-center text-muted mt-5"
@@ -229,6 +288,17 @@ const Category = () => {
             </p>
           </div>
         )}
+         {/* Load More */}
+      {sortedProducts?.length > visibleCount && (
+        <div className="text-center my-4">
+          <button
+            className="btn btn-outline-primary rounded-pill px-4"
+            onClick={() => setVisibleCount((prev) => prev + 8)}
+          >
+            Xem thêm
+          </button>
+        </div>
+      )}
       </div>
     </div>
   );
