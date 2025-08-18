@@ -189,7 +189,7 @@ const Product = () => {
       )}
       {showSizeWarning && (
         <div className="slide-notification warning">
-          <p>⚠️ Vui lòng chọn kích thước !</p>
+          <p>⚠️ Vui lòng chọn hình dáng !</p>
         </div>
       )}
       {showQtyWarning && (
@@ -341,7 +341,7 @@ const Product = () => {
                     className="size-options"
                   >
                     <label style={{ marginBottom: "20px" }}>
-                      Kích thước: {product.selectedSize || "Chọn size"}
+                     Hình dáng: {product.selectedSize || "Chọn hình dáng"}
                     </label>
                     <div className="size-options__a">
                       <div className="size-buttons">
@@ -357,7 +357,6 @@ const Product = () => {
                           </button>
                         ))}
                       </div>
-                      <SizeGuide />
                     </div>
                   </div>
 
@@ -464,7 +463,7 @@ const Product = () => {
                 </motion.div>
               </button>
 
-              <div className={`toggle-description ${showDes ? "show" : ""}`}>
+              <div className={`toggle-description ${showDes ? "show" : ""} ` } style={{overflowY:'auto'}}>
                 <div>{product.description}</div>
                 <img
                   style={{ objectFit: "cover", width: "100%" }}

@@ -7,6 +7,7 @@ import { Navigation, Autoplay } from "swiper/modules";
 import { getSlidesByArea } from "../api/slideApi";
 import slide404 from "../img/Slide404.png";
 import { motion } from "framer-motion"; // 👉 Thêm motion
+import { socket } from "../api/socket";  // 👈 import socket
 
 const Collection = ({ area, title }) => {
   const URL = process.env.REACT_APP_WEB_URL; 
@@ -28,6 +29,19 @@ const Collection = ({ area, title }) => {
     };
     fetchSlides();
   }, [area]);
+  useEffect(() => {
+    socket.on("slideStatusUpdated", (data) => {
+      setSlides((prev) =>
+        prev.map((s) =>
+          s.id === Number(data.id) ? { ...s, status: data.status } : s
+        )
+      );
+    });
+
+    return () => {
+      socket.off("slideStatusUpdated");
+    };
+  }, []);
 
   const handleTitleClick = (index) => {
     setActiveIndex(index);

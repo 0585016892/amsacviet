@@ -6,6 +6,8 @@ import { FaArrowUpShortWide, FaArrowUpWideShort } from "react-icons/fa6";
 import { Loading } from "../components";
 import { getAllColors } from "../api/colorApi";
 import { motion } from "framer-motion"; // 👈 thêm framer-motion
+import { io } from "socket.io-client"; 
+
 
 const Category = () => {
   const URL = process.env.REACT_APP_WEB_URL; 
@@ -38,7 +40,52 @@ const [visibleCount, setVisibleCount] = useState(4); // 👈 Load 8 sp đầu
     };
     fetchCategoryData();
   }, [slug]);
+ // 👇 kết nối socket
+  useEffect(() => {
+    const socket = io(URL); // URL backend
 
+    // Lắng nghe sự kiện thêm sản phẩm
+    socket.on("addProductTrue", (data) => {
+      console.log("⚡ Nhận sản phẩm mới:", data);
+      // chỉ thêm nếu sản phẩm thuộc danh mục hiện tại
+      if (data.categoryId === categoryData?.id) {
+        setCategoryData((prev) => ({
+          ...prev,
+          products: [...prev.products, {
+            id: data.productId,
+            name: data.name,
+            slug: data.slug,
+            image: data.image,
+            price: data.price,
+            status: data.status,
+            color: data.color || "",
+            discount_type: data.discount_type || null,
+            discount_value: data.discount_value || null,
+            created_at: new Date().toISOString()
+          }]
+        }));
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [URL, categoryData?.id]);
+  useEffect(() => {
+  const socket = io(URL);
+
+  // 👂 Lắng nghe xoá sản phẩm
+  socket.on("deleteProductTrue", ({ productId }) => {
+    setCategoryData((prev) => ({
+      ...prev,
+      products: prev.products.filter((p) => p.id !== Number(productId))
+    }));
+  });
+
+  return () => {
+    socket.disconnect();
+  };
+}, [URL]);
   if (error) {
     return (
       <Container
@@ -288,6 +335,8 @@ const renderProductItem = (product, index) => (
             </p>
           </div>
         )}
+      
+      </div>
          {/* Load More */}
       {sortedProducts?.length > visibleCount && (
         <div className="text-center my-4">
@@ -299,7 +348,6 @@ const renderProductItem = (product, index) => (
           </button>
         </div>
       )}
-      </div>
     </div>
   );
 };

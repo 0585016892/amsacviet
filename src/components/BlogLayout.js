@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import postApi from '../api/postApi';
 import { Link } from 'react-router-dom';
 import { motion } from "framer-motion"; // 👉 Thêm motion
+import { socket } from "../api/socket";  // 👈 import socket
 
 const BlogLayout = () => {
   const [posts, setPosts] = useState([]);
@@ -17,7 +18,20 @@ const BlogLayout = () => {
 
     fetchPosts();
   }, []);
+// 👇 Lắng nghe realtime slide update
+  useEffect(() => {
+    socket.on("postStatusUpdated", (data) => {
+      setPosts((prev) =>
+        prev.map((s) =>
+          s.id === Number(data.postId) ? { ...s, status: data.status } : s
+        )
+      );
+    });
 
+    return () => {
+      socket.off("postStatusUpdated");
+    };
+  }, []);
   const latestPost = posts[0];
   const recommendedPosts = posts.slice(1);
 

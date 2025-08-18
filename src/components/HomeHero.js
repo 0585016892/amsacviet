@@ -70,10 +70,8 @@ function HomeHero() {
           style={{ maxWidth: "200px" }}
         >
           <option value="">-- Chọn size --</option>
-          <option value="M">Size M</option>
-          <option value="L">Size L</option>
-          <option value="XL">Size XL</option>
-          <option value="2XL">Size 2XL</option>
+          <option value="D">D</option>
+          <option value="A khuyết">A khuyết</option>
         </Form.Select>
 
         <Form.Select

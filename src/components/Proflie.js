@@ -19,6 +19,9 @@ import userApi from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
 import { Loading } from "../components";
 import { motion, AnimatePresence } from "framer-motion";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000");
 const Profile = () => {
   const { logout } = useAuth();
 
@@ -61,7 +64,36 @@ const Profile = () => {
     };
     fetchData();
   }, []);
+// 👉 Kết nối socket
+  useEffect(() => {
+    const socket = io("http://localhost:5000"); // thay bằng domain backend
 
+    socket.on("connect", () => {
+    });
+
+    socket.on("orderUpdate", (data) => {
+
+      setOrderHistory((prev) =>
+        prev.map((order) =>
+          order.id === Number(data.orderId)
+            ? { ...order, status: data.status }
+            : order
+        )
+      );
+
+      setPendingOrders((prev) =>
+        prev.map((order) =>
+          order.id === Number(data.orderId)
+            ? { ...order, status: data.status }
+            : order
+        )
+      );
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
   const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       return setPassMsg("Mật khẩu mới không khớp");

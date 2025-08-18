@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { getActiveFooters } from "../api/footerApi";
 import { getSlidesByArea } from "../api/slideApi";
 import { motion, AnimatePresence } from "framer-motion";
+import { io } from "socket.io-client"; 
 
 const Footer = () => {
   const URL = process.env.REACT_APP_WEB_URL;
@@ -34,7 +35,19 @@ const Footer = () => {
     };
     fetchData();
   }, []);
+useEffect(() => {
+  const socket = io(process.env.REACT_APP_WEB_URL);
 
+  socket.on("updateFooterStatus", ({ id, status }) => {
+    setFooterItems((prev) =>
+      prev.map((f) => (f.id === Number(id) ? { ...f, status } : f))
+    );
+  });
+
+  return () => {
+    socket.disconnect();
+  };
+}, []);
   const handleClick = (index, e) => {
     e.preventDefault();
     setOpenIndexes((prev) => ({

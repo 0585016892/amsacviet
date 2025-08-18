@@ -13,6 +13,8 @@ import categoryService from "../api/danhmucWebApi";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { motion, AnimatePresence } from "framer-motion";
+
 const Header = () => {
   const { user } = useAuth();
   const { totalItems } = useCart();
@@ -75,6 +77,14 @@ const Header = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     setCartCount(cart.length);
   };
+    const categoryVariants = {
+      hidden: { opacity: 0, y: 20 },
+      visible: (i) => ({
+        opacity: 1,
+        y: 0,
+        transition: { delay: i * 0.1, duration: 0.3 }
+      })
+    };
 
   useEffect(() => {
     updateCartCount(); // load ban đầu
@@ -197,11 +207,10 @@ const Header = () => {
           </Navbar>
         </div>
       )}
-
-      {isMenuOpen && (
+              {isMenuOpen && (
         <div className="">
           <div
-            className="menu-overlay slide-down"
+              className="menu-overlay slide-down"
             style={{
               position: "fixed",
               top: "0", // Điều chỉnh cho phù hợp với chiều cao của Navbar
@@ -289,9 +298,12 @@ const Header = () => {
                       <h3 style={{ margin: "0 10px" }}>{categoryItem.name}</h3>
                       <GoArrowUpRight size={25} />
                     </div>
-                    <ul className="category-list">
+                    <motion.ul
+                      initial="hidden"
+                      animate="visible"
+                      className="category-list">
                       {categoryItem.dmCon?.map((subCategory) => (
-                        <li key={subCategory.child_id}>
+                        <motion.li  variants={categoryVariants} key={subCategory.child_id}>
                           <div className="d-flex justify-content-between">
                             <div className="category_item d-flex align-items-center justify-content-center">
                               {/* Hiển thị ảnh nếu có */}
@@ -313,9 +325,9 @@ const Header = () => {
                               </div>
                             )}
                           </div>
-                        </li>
+                        </motion.li>
                       ))}
-                    </ul>
+                    </motion.ul>
                   </Col>
                 ))}
               </Row>
@@ -336,6 +348,7 @@ const Header = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

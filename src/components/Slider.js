@@ -3,7 +3,7 @@ import { Carousel, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { getSlidesByArea } from "../api/slideApi";
 import slide404 from "../img/Slide404.png";
-
+import { socket } from "../api/socket";  // 👈 import socket
 const Slider = () => {
   const URL = process.env.REACT_APP_WEB_URL; // Cập nhật URL nếu khác
 
@@ -25,7 +25,20 @@ const Slider = () => {
 
     fetchSlides();
   }, [navigate]);
+// 👇 Lắng nghe realtime slide update
+  useEffect(() => {
+    socket.on("slideStatusUpdated", (data) => {
+      setSlides((prev) =>
+        prev.map((s) =>
+          s.id === Number(data.id) ? { ...s, status: data.status } : s
+        )
+      );
+    });
 
+    return () => {
+      socket.off("slideStatusUpdated");
+    };
+  }, []);
   const handleImageLoad = (id) => {
     setLoadingImages((prev) => ({ ...prev, [id]: false }));
   };
