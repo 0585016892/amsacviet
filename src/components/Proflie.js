@@ -229,7 +229,7 @@ if (loading) {
                     </motion.div>
                   </Tab>
                   <Tab eventKey="history" title="Lịch sử mua hàng">
-                    <OrderList orders={orderHistory} />
+                    <OrderList orders={orderHistory.filter((oh)=>["Đã giao"].includes(oh.status))} />
                   </Tab>
                   <Tab eventKey="pending" title="Đơn hàng đang đặt">
                     <OrderList

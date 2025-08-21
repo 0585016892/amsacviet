@@ -278,3 +278,8 @@
 .toggle-description.show {
   max-height: 500px; /* Chọn max phù hợp với nội dung */
 }
+.product-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}

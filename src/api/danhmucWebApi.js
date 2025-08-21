@@ -17,6 +17,15 @@ const categoryService = {
       throw error;
     }
   },
+  async getCollection() {
+    try {
+      const { data } = await axios.get(`${API_URL}/collections`);
+      return data;
+    } catch (error) {
+     
+      throw error;
+    }
+  },
 };
 
 export default categoryService;

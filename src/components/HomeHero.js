@@ -147,21 +147,44 @@ function HomeHero() {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="d-flex justify-content-center mt-4">
-          <Pagination>
-            {[...Array(totalPages).keys()].map((num) => (
-              <Pagination.Item
-                key={num + 1}
-                active={num + 1 === currentPage}
-                onClick={() => setCurrentPage(num + 1)}
-              >
-                {num + 1}
-              </Pagination.Item>
-            ))}
-          </Pagination>
-        </div>
-      )}
+     {totalPages > 1 && (
+  <div className="d-flex justify-content-center mt-4">
+    <Pagination className="shadow-sm rounded">
+      {/* Nút Previous */}
+      <Pagination.Prev
+        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+      />
+      
+      {/* Các số trang */}
+      {[...Array(totalPages).keys()].map((num) => (
+        <Pagination.Item
+          key={num + 1}
+          active={num + 1 === currentPage}
+          onClick={() => setCurrentPage(num + 1)}
+          style={{
+            minWidth: "40px",
+            textAlign: "center",
+            margin: "0 3px",
+            borderRadius: "50%",
+            cursor: "pointer",
+            transition: "all 0.2s",
+          }}
+          className="bg-light border-0"
+        >
+          {num + 1}
+        </Pagination.Item>
+      ))}
+
+      {/* Nút Next */}
+      <Pagination.Next
+        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+      />
+    </Pagination>
+  </div>
+)}
+
     </div>
   );
 }

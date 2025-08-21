@@ -1,0 +1,102 @@
+/* VirtualPiano.css */
+
+.piano-app {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.piano-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.piano-key {
+  width: 60px;
+  height: 220px;
+  margin: 2px;
+  background: white;
+  border: 1px solid #999;
+  border-radius: 5px;
+  text-align: center;
+  line-height: 180px;
+  font-weight: bold;
+  font-size: 18px;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 4px #bbb;
+  transition: all 0.1s ease;
+}
+
+.piano-key:active {
+  background: #f0f0f0;
+  box-shadow: 0 2px #666;
+  transform: translateY(2px);
+}
+
+.piano-key-hint {
+  font-size: 12px;
+  color: gray;
+  position: absolute;
+  bottom: 5px;
+  width: 100%;
+  text-align: center;
+}
+.piano-key.active {
+  background-color: #d0f0ff;
+  box-shadow: 0 0 10px #4A90E2;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.piano-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.piano {
+  position: relative;
+  height: 250px;
+  display: flex;
+}
+
+.white-key {
+  width: 60px;
+  height: 250px;
+  background: white;
+  border: 1px solid #aaa;
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+}
+
+.black-key {
+  width: 40px;
+  height: 160px;
+  background: black;
+  position: absolute;
+  z-index: 2;
+  margin-left: -20px;
+  margin-right: -20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.black-key.active {
+  background: #333;
+}
+
+.white-key.active {
+  background: #cceeff;
+}
+
+.note-label {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 14px;
+  color: #333;
+}

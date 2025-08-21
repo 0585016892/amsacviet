@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, Button, Navbar } from "react-bootstrap";
+import { Row, Col, Form, Button, Navbar,Card,Badge } from "react-bootstrap";
 import { FaSearch, FaBars } from "react-icons/fa";
 import Logo from "../img/logo.png";
 import a from "../img/1.webp";
@@ -49,6 +49,7 @@ const Header = () => {
     setIsMenuOpen(!isMenuOpen);
   };
   const [categoryData, setCategoryData] = useState([]);
+  const [collections, setCollectionsData] = useState([]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -61,6 +62,18 @@ const Header = () => {
 
     fetchCategories();
   }, []);
+   useEffect(() => {
+    const  fetchCollections = async () => {
+      try {
+        const data = await categoryService.getCollection();
+        setCollectionsData(data.data);
+      } catch (error) {
+      }
+    };
+
+     fetchCollections();
+   }, []);
+  
   // tìm kiếm
   const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
@@ -130,7 +143,7 @@ const Header = () => {
                 </Col>
                 <Col md={3} xs={4} className="text-left">
                   <Navbar.Brand href="/">
-                    <img src={Logo} height={32} alt="" />
+                    <img src={Logo} height={70} alt="" />
                   </Navbar.Brand>
                 </Col>
 
@@ -207,7 +220,7 @@ const Header = () => {
           </Navbar>
         </div>
       )}
-              {isMenuOpen && (
+       {isMenuOpen && (
         <div className="">
           <div
               className="menu-overlay slide-down"
@@ -216,7 +229,7 @@ const Header = () => {
               top: "0", // Điều chỉnh cho phù hợp với chiều cao của Navbar
               left: "0",
               width: "100%",
-              maxHeight: "90%",
+              maxHeight: "95%",
               height: "100%", // Hoặc một chiều cao cố định tùy ý
               backgroundColor: "white",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
@@ -292,8 +305,10 @@ const Header = () => {
                 </a>
               </div>
               <Row>
+                  <Col md={9} className="d-flex" >
+
                 {categoryData?.map((categoryItem) => (
-                  <Col key={categoryItem.id}>
+                  <div key={categoryItem.id}>
                     <div className="d-flex align-items-center">
                       <h3 style={{ margin: "0 10px" }}>{categoryItem.name}</h3>
                       <GoArrowUpRight size={25} />
@@ -328,8 +343,47 @@ const Header = () => {
                         </motion.li>
                       ))}
                     </motion.ul>
-                  </Col>
+                    </div>
                 ))}
+                  </Col>
+                  
+                <Col md={3}>
+                  {Array.isArray(collections) && collections.length > 0 ? (
+                      collections.map((col) => (
+                        <Col md={12} key={col.id} className="mb-4">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}     // bắt đầu mờ và trượt xuống
+        animate={{ opacity: 1, y: 0 }}      // hiện rõ và về đúng vị trí
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        whileHover={{ scale: 1.03 }}        // khi hover thì phóng to nhẹ
+      >
+        <Card className="border-0 shadow-sm h-90">
+          <Card.Img
+            variant="top"
+            src={
+              col.image?.startsWith("http")
+                ? col.image
+                : `${process.env.REACT_APP_WEB_URL}/uploads/${col.image}`
+            }
+            style={{ height: "200px", objectFit: "cover" }}
+          />
+          <Card.Body>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <Card.Title className="mb-0 fs-5">{col.name}</Card.Title>
+            </div>
+            <Card.Text className="text-muted" style={{ minHeight: "60px" }}>
+              {col.description?.slice(0, 100)}...
+            </Card.Text>
+          </Card.Body>
+        </Card>
+      </motion.div>
+    </Col>
+                      ))
+                    ) : (
+                      <p></p>
+                    )}
+                 
+                </Col>
               </Row>
             </div>
             <div
