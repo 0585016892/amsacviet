@@ -64,6 +64,39 @@ const userApi = {
 
     return res.data;
   },
+
+  // Lấy tất cả voucher
+  allVoucher: async () => {
+    const res = await axios.get(`${API_URL}/coupons`, {
+      headers: getHeaders(),
+    });
+    return res.data;
+  },
+
+  // 🔔 Lấy thông báo khách hàng
+  getNotifications: async (userId) => {
+    const res = await axios.get(`${API_URL}/users/${userId}`, {
+      headers: getHeaders(),
+    });
+    return res.data; // { success, notifications }
+  },
+
+  // 🔔 Đánh dấu 1 thông báo đã đọc
+markNotificationAsRead: async (notifId) => {
+  const res = await axios.put(`${API_URL}/users/${notifId}/read`, {}, {
+    headers: getHeaders(),
+  });
+  return res.data;
+},
+
+
+  // 🔔 Đánh dấu tất cả thông báo đã đọc
+  markAllNotificationsAsRead: async (userId) => {
+    const res = await axios.put(`${API_URL}/users/user/${userId}/read-all`, {}, {
+      headers: getHeaders(),
+    });
+    return res.data;
+  },
 };
 
 export default userApi;

@@ -1,9 +1,16 @@
 import React, { useState } from "react";
-import { Form, Button, Container, Alert, Spinner, Card } from "react-bootstrap";
+import {
+  Form,
+  Button,
+  Alert,
+  Spinner,
+  Card,
+} from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
-import { motion, AnimatePresence } from "framer-motion"; // 👉 Thêm
+import { motion, AnimatePresence } from "framer-motion";
+import { FaMusic } from "react-icons/fa";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -21,7 +28,7 @@ const Login = () => {
     try {
       const { token, user } = await loginUser(email, password);
       localStorage.setItem("token", token);
-      login(user); // <== cập nhật context
+      login(user);
       navigate("/");
     } catch (error) {
       setErrorMsg(error);
@@ -31,28 +38,54 @@ const Login = () => {
   };
 
   return (
-    <Container
-      className="d-flex justify-content-center align-items-center"
-      style={{ minHeight: "100vh" }}
-    >
-      {/* 👉 Card có animation khi vào */}
+    <div className="login-bg">
+      {/* Visualizer background */}
+      <div className="visualizer">
+        {[...Array(20)].map((_, i) => (
+          <span key={i} style={{ animationDelay: `${i * 0.1}s` }}></span>
+        ))}
+      </div>
+
+      {/* Login Card */}
       <motion.div
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        style={{ width: "100%", maxWidth: "400px" }}
+        style={{ width: "100%", maxWidth: "400px", zIndex: 10 }}
       >
-        <Card className="shadow-lg p-4 rounded">
-          <motion.h3
-            className="text-center mb-4 text-primary"
-            initial={{ scale: 0.8, opacity: 0 }}
+        <Card
+          className="shadow-lg p-4 text-light"
+          style={{
+            background: "rgba(30,30,50,0.6)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: "20px",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 0 25px rgba(255,75,95,0.4)",
+          }}
+        >
+          <motion.div
+            className="d-flex justify-content-center mb-3"
+            initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
+          >
+            <FaMusic size={55} color="#ff4d6d" />
+          </motion.div>
+
+          <motion.h2
+            className="text-center mb-4 fw-bold"
+            style={{
+              letterSpacing: "1px",
+              background: "linear-gradient(90deg, #ff4d6d, #ff758c)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+            initial={{ y: -10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
           >
             Đăng nhập
-          </motion.h3>
+          </motion.h2>
 
-          {/* 👉 Hiện lỗi có hiệu ứng */}
           <AnimatePresence>
             {errorMsg && (
               <motion.div
@@ -71,53 +104,82 @@ const Login = () => {
               <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
-                placeholder="Nhập email của bạn"
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="shadow-sm"
+                style={{
+                  borderRadius: "12px",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  background: "rgba(255,255,255,0.05)",
+                  color: "#fff",
+                }}
               />
             </Form.Group>
 
             <Form.Group controlId="formPassword" className="mb-4">
-              <Form.Label>Mật khẩu</Form.Label>
+              <Form.Label>Password</Form.Label>
               <Form.Control
                 type="password"
-                placeholder="Nhập mật khẩu"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="shadow-sm"
+                style={{
+                  borderRadius: "12px",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  background: "rgba(255,255,255,0.05)",
+                  color: "#fff",
+                }}
               />
             </Form.Group>
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
-                variant="primary"
                 type="submit"
-                className="w-100"
+                className="w-100 fw-bold"
+                style={{
+                  background: "linear-gradient(90deg,#ff4d6d,#ff758c)",
+                  border: "none",
+                  borderRadius: "12px",
+                  padding: "10px",
+                  fontSize: "16px",
+                  boxShadow: "0 4px 15px rgba(255,75,95,0.4)",
+                }}
                 disabled={loading}
               >
                 {loading ? (
                   <>
                     <Spinner animation="border" size="sm" className="me-2" />
-                    Đang đăng nhập...
+                    Signing in...
                   </>
                 ) : (
-                  "Đăng nhập"
+                  "Login"
                 )}
               </Button>
             </motion.div>
           </Form>
 
           <div className="text-center mt-3">
-            <small className="text-muted">
-              Chưa có tài khoản? <a href="/register">Đăng ký</a>
+            <small className="text-muted" style={{color:'rgb(255 255 255 / 75%)'}}>
+              Don’t have an account?{" "}
+              <a
+                href="/register"
+                style={{
+                  color: "#ff758c",
+                  fontWeight: "bold",
+                  textDecoration: "none",
+                }}
+              >
+                Sign up
+              </a>
             </small>
           </div>
         </Card>
       </motion.div>
-    </Container>
+    </div>
   );
 };
 

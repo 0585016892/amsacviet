@@ -7,6 +7,7 @@ import logoAdmin from "../img/logoadmin.png";
 import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
 const API_URL = process.env.REACT_APP_API_URL;
+const WEB_URL = process.env.REACT_APP_WEB_URL;
 
 const ChatBox = ({ userId }) => {
   const { addToCart } = useCart();
@@ -27,7 +28,7 @@ const ChatBox = ({ userId }) => {
   useEffect(() => {
     if (!userId) return;
 
-    const socket = io("http://localhost:5000", {
+    const socket = io(`${WEB_URL}`, {
       transports: ["websocket"],
     });
 
@@ -502,7 +503,7 @@ const ChatBox = ({ userId }) => {
           <div className="card-body d-flex align-items-center">
             <div className="me-3">
               <img
-                src={`http://localhost:5000/uploads/${addedProduct.image}`}
+                src={`${WEB_URL}/uploads/${addedProduct.image}`}
                 alt="Product Image"
                 className="rounded"
                 style={{ width: "100%", height: "80px", objectFit: "cover" }}

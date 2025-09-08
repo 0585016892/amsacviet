@@ -1,0 +1,69 @@
+.guitar-viewer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px;
+  background: linear-gradient(135deg, #0ff, #9b59b6, #2ecc71);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,255,255,0.3), 0 0 30px rgba(155,89,182,0.3);
+  flex-direction: row;
+  gap: 30px;
+}
+
+.guitar-text {
+  flex: 1;
+  color: #fff;
+  padding-right: 30px;
+}
+
+.guitar-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.guitar-desc {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.guitar-button {
+  margin-top: 30px;
+  padding: 12px 28px;
+  background-color: #0ff;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.guitar-3d {
+  flex: 1;
+  height: 600px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .guitar-viewer {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .guitar-text {
+    padding-right: 0;
+    text-align: center;
+  }
+
+  .guitar-button {
+    width: 100%;
+  }
+
+  .guitar-3d {
+    width: 100%;
+    height: 400px;
+    margin-top: 20px;
+  }
+}

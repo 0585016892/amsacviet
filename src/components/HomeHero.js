@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, Button, Spinner, Form, Pagination} from "react-bootstrap";
 import { Link } from "react-router-dom";
-
+const API_URL = process.env.REACT_APP_API_URL;
+const WEB_URL = process.env.REACT_APP_WEB_URL;
 function HomeHero() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +17,7 @@ function HomeHero() {
   const productsPerPage = 8;
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/products")
+    fetch(`${API_URL}/products`)
       .then((res) => res.json())
       .then((data) => {
         console.log("API data:", data);
@@ -107,7 +108,7 @@ function HomeHero() {
         <motion.div whileHover={{ scale: 1.1 }}>
           <Card.Img
             variant="top"
-            src={`http://localhost:5000/uploads/${product.image}`}
+            src={`${WEB_URL}/uploads/${product.image}`}
             alt={product.name}
             style={{
               height: "300px",

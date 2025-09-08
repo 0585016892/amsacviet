@@ -48,6 +48,7 @@ const Profile = () => {
       try {
         const userData = await userApi.getProfile();
         setUser(userData);
+        // cập nhật
         setUpdateForm({
           full_name: userData.full_name,
           phone: userData.phone,
@@ -156,11 +157,11 @@ if (loading) {
       <AnimatePresence>
         {passMsg && (
            <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-    >
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+         >
             <Alert
                   variant={
                     passMsg.toLowerCase().includes("không") ? "danger" : "success"
@@ -175,7 +176,7 @@ if (loading) {
       </AnimatePresence>
       
       <Tabs defaultActiveKey="info" id="profile-tabs" className="mb-4">
-        <Tab eventKey="info" title="Thông tin chi tiết">
+              <Tab eventKey="info" title="Thông tin chi tiết">
           <motion.div
               key="info-tab"
               initial={{ opacity: 0, x: -50 }}
@@ -239,7 +240,7 @@ if (loading) {
                     />
                   </Tab>
                 </Tabs>
-    <AnimatePresence>
+                <AnimatePresence>
                   <motion.div
                 key="update-modal"
                 initial={{ opacity: 0, scale: 0.9 }}

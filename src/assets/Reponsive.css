@@ -11,7 +11,7 @@
 .product-mota {
   margin-left: 50px;
   margin-top: 20px;
-  width: 528px;
+  width: 100%;
   border: 1px solid grey;
   border-radius: 10px;
   padding: 10px 15px;
@@ -21,10 +21,11 @@
   font-size: 20px;
 }
 .cart__size {
-  border: 1px solid #c3c2c2;
-  border-radius: 15px;
-  width: 115px;
-  margin-top: 10px;
+      border: 1px solid #c3c2c2;
+    border-radius: 15px;
+    width: 50%;
+    margin: 10px;
+    padding: 5px 10px;
 }
 .cart__bottom {
   display: flex;
@@ -124,7 +125,6 @@
   .product-list {
     display: grid;
     margin: 0;
-    grid-template-columns: repeat(2, 1fr);/* 2 cột bằng nhau */
     gap: 10px;
   }
 
@@ -250,10 +250,13 @@
   }
   .quantity-controls button {
     padding: 0 10px;
+    width: 30%;
+  }
+  .quantity-controls input {
+    width: 40%;
   }
   .add-to-cart-button {
-    height: 80%;
-    padding: 2px 15px;
+    height: 100%;
     border-radius: 30px;
     margin-top: 7px;
   }
@@ -268,7 +271,9 @@
     font-size: 14px;
   }
   .cart__size {
-    font-size: 14px;
+            font-size: 14px;
+        padding: 5px 10px;
+        width: 100%;
   }
   .quantity-selector {
     margin-bottom: 0;
@@ -278,7 +283,8 @@
   }
   .cart__bottom {
     height: 78px;
-    align-items: end;
+    align-items: center;
+    flex-direction: column;
   }
   .cart__img {
     margin: 0;

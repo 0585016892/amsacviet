@@ -18,3 +18,6 @@ export { default as BlogDetail } from "./BlogDetail";
 export { default as ZaloChat } from "./ZaloChat";
 export { default as HomeHero } from "./HomeHero";
 export { default as GuitarViewer } from "./GuitarViewer";
+export { default as ProfileOrders } from "./ProfileOrders";
+export { default as OrderTracking } from "./OrderTracking";
+ 

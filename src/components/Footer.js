@@ -59,11 +59,11 @@ useEffect(() => {
   const renderIcon = (type) => {
     switch (type) {
       case "phone":
-        return <FaPhoneAlt size={25} style={{ marginRight: "15px" }} />;
+        return <FaPhoneAlt size={25} style={{ marginRight: "15px" ,color: "#fff" }} />;
       case "email":
-        return <IoMail size={25} style={{ marginRight: "15px" }} />;
+        return <IoMail size={25} style={{ marginRight: "15px",color: "#fff"  }} />;
       case "address":
-        return <MdAddLocation size={25} style={{ marginRight: "15px" }} />;
+        return <MdAddLocation size={25} style={{ marginRight: "15px",color: "#fff"  }} />;
       default:
         return null;
     }
@@ -77,7 +77,7 @@ useEffect(() => {
   };
 
   return (
-    <div style={{ background: "#111928", marginTop: "60px" }}>
+    <div style={{ background: "#111928" }}>
       <div className="d-flex justify-content-center footer-a ">
         <div className="d-flex justify-space-beetween contact_b">
           <Row className="w-100">
@@ -95,35 +95,38 @@ useEffect(() => {
             </Col>
 
             {/* Lien He Section */}
-            <Col xs={12} md={6}>
-              <div className="d-flex flex-column text-white">
-                <div className="d-flex footer-lienhe">
-                  {footerItems
-                    ?.filter((item) => item.type === "lienhe")
-                    ?.map((section2, idx) => (
-                      <motion.div
-                        key={section2.id}
-                        className="d-flex align-items-center contact_phone m-2"
-                        whileInView={{ opacity: 1, x: 0 }}
-                        initial={{ opacity: 0, x: 20 }}
-                        viewport={{ once: true, amount: 0.3 }}
-                        transition={{ duration: 0.6, delay: idx * 0.2 }}
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        {renderIcon(section2.value)}
-                        <div>
-                          <p className="text-body-md text-theme-surface-secondary">
-                            {section2.title}
-                          </p>
-                          <p className="text-label-lg break-words text-theme-surface">
-                            {section2.label}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                </div>
-              </div>
-            </Col>
+            <Row>
+  {footerItems
+    ?.filter(item => item.type === "lienhe")
+    ?.map((section2, idx) => (
+      <Col
+        key={section2.id}
+        xs={6}  // 2 cột trên điện thoại
+        sm={4}  // 3 cột trên sm (≥576px)
+        md={6}  // 2 cột trên md
+      >
+        <motion.div
+          className="d-flex align-items-center contact_phone m-2"
+          whileInView={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, x: 20 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, delay: idx * 0.2 }}
+          whileHover={{ scale: 1.05 }}
+        >
+          {renderIcon(section2.value)}
+          <div>
+            <p  style={{ color: "#fff" }} className="text-body-md text-theme-surface-secondary">
+              {section2.title}
+            </p>
+            <p  style={{ color: "#fff" }} className="text-label-lg break-words text-theme-surface">
+              {section2.label}
+            </p>
+          </div>
+        </motion.div>
+      </Col>
+    ))}
+            </Row>
+
           </Row>
         </div>
 
@@ -162,7 +165,7 @@ useEffect(() => {
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ duration: 0.3 }}
                             >
-                              <Link to={`/category${branch.label}`}>
+                              <Link to={branch.label}>
                                 {branch.title}
                               </Link>
                             </motion.li>

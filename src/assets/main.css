@@ -40,7 +40,7 @@ body a {
   color: black;
   background: grey;
 }
-.menu_header::after {
+/* .menu_header::after {
   content: "";
   width: 100%;
   color: black;
@@ -48,7 +48,7 @@ body a {
   background: grey;
   top: 10%;
   height: 2px;
-}
+} */
 .category-list li {
   margin: 25px 0;
 }
@@ -372,4 +372,93 @@ body a {
 
 .collection-title button.active::after {
   background-color: #f5a623;
+}
+
+
+.order-timeline {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+}
+
+.order-timeline .step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+
+.order-timeline .circle {
+  width: 64px;  /* to hơn */
+  height: 64px;
+  border: 3px solid #d6d6d6;
+  border-radius: 50%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px; /* icon to hơn */
+  background: #fff;
+  color: #6c757d;
+  z-index: 2;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.order-timeline .circle.active {
+  border-color: #28a745;
+  color: #28a745;
+  background: #e9f9ef;
+}
+
+.order-timeline .line {
+  position: absolute;
+  top: 32px; /* căn giữa circle (64/2) */
+  left: 60%;
+  width: 100%;
+  height: 3px; /* line dày hơn */
+  background: #d6d6d6;
+  z-index: 1;
+}
+
+.order-timeline .line.active {
+  background: #28a745;
+}
+
+.order-timeline .label {
+  margin-top: 12px;
+  font-size: 14px; /* chữ to hơn */
+  line-height: 1.5;
+}
+.login-bg {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.visualizer {
+  position: absolute;
+  bottom: 81%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 1;
+}
+
+.visualizer span {
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(to top, #ff4d6d, #ff758c);
+  display: inline-block;
+  animation: bounce 1s infinite ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scaleY(0.3); opacity: 0.5; }
+  50% { transform: scaleY(1.5); opacity: 1; }
 }

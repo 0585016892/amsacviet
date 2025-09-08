@@ -14,7 +14,8 @@ import { useCart } from "../context/CartContext";
 import { Loading } from "../components";
 import { showSuccessToast, showErrorToast } from "../utils/toastUtils";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { FaExclamationTriangle } from "react-icons/fa";
+import { useSwipeable } from "react-swipeable";
 const Product = () => {
   const URL = process.env.REACT_APP_WEB_URL; 
 
@@ -28,7 +29,8 @@ const Product = () => {
   const [showQtyWarning, setShowQtyWarning] = useState(false);
   const [showDes, setShowDes] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState("");
+const [selectedImage, setSelectedImage] = useState(null);
+  const [colors, setColors] = useState([]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -41,6 +43,7 @@ const Product = () => {
         setProduct({
           ...productData,
           totalPto: productData.quantity,
+          subImages: productData.subImages || [],
           selectedColor: productData.colors ? productData.colors[0] : "",
           selectedSize: productData.sizes ? productData.sizes[0] : "",
           currentImageUrlIndex: 0,
@@ -68,7 +71,6 @@ const Product = () => {
 
     fetchProduct();
   }, [slug]);
-  const [colors, setColors] = useState([]);
   useEffect(() => {
     const fetchColors = async () => {
       const data = await getAllColors();
@@ -168,6 +170,21 @@ const Product = () => {
   //       (prevProduct.currentImageUrlIndex + 1) % prevProduct.imageUrls.length,
   //   }));
   // };
+const allImages = product ? [product.image, ...(product.subImages || [])] : [];
+const handlers = useSwipeable({
+  onSwipedLeft: () => {
+    if (allImages.length === 0) return;
+    const currentIndex = allImages.indexOf(selectedImage);
+    const nextIndex = (currentIndex + 1) % allImages.length;
+    setSelectedImage(allImages[nextIndex]);
+  },
+  onSwipedRight: () => {
+    if (allImages.length === 0) return;
+    const currentIndex = allImages.indexOf(selectedImage);
+    const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length;
+    setSelectedImage(allImages[prevIndex]);
+  },
+});
 
   if (loading) {
     return (
@@ -179,24 +196,11 @@ const Product = () => {
       </Container>
     );
   }
-
+showColorWarning && showSuccessToast("Thông báo", "Vui lòng chọn màu sắc!");
+showSizeWarning && showSuccessToast("Thông báo", "Vui lòng chọn hình dáng!");
+showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ số lượng!");
   return (
     <div style={{ marginTop: "72px" }}>
-      {showColorWarning && (
-        <div className="slide-notification warning">
-          <p>⚠️ Vui lòng chọn màu sắc !</p>
-        </div>
-      )}
-      {showSizeWarning && (
-        <div className="slide-notification warning">
-          <p>⚠️ Vui lòng chọn hình dáng !</p>
-        </div>
-      )}
-      {showQtyWarning && (
-        <div className="slide-notification warning">
-          <p>⚠️ Sản phẩm không đủ số lượng !</p>
-        </div>
-      )}
       <div className="category-header">
         <ol
           className="breadcrumb"
@@ -216,59 +220,107 @@ const Product = () => {
         <Row>
           <div className="product-detail-container">
             <Col md={6} xs={12}>
-              {" "}
               <div className="product-images">
+                {/* Desktop thumbnails: d-md-flex */}
                 <div
                   style={{ flexDirection: "column", marginRight: 15 }}
-                  className="d-md-flex d-none flex-wrap gap-2  justify-content-center"
+                  className="d-none d-md-flex flex-wrap gap-2 justify-content-center"
                 >
-                  {[product.image, ...(product.subImages || [])]?.map(
-                    (img, idx) => (
-                      <Image
-                        key={idx}
-                        src={`${URL}/uploads/${img}`}
-                        thumbnail
-                        style={{
-                          width: "100px",
-                          height: "100px",
-                          objectFit: "cover",
-                          cursor: "pointer",
-                          border:
-                            selectedImage === img
-                              ? "2px solid #0d6efd"
-                              : "1px solid #ddd",
-                          borderRadius: "8px",
-                        }}
-                        onClick={() => setSelectedImage(img)}
-                      />
-                    )
-                  )}
+                  {[product.image, ...(product.subImages || [])].map((img, idx) => (
+                    <Image
+                      key={idx}
+                      src={`${URL}/uploads/${img}`}
+                      thumbnail
+                      style={{
+                        width: "100px",
+                        height: "100px",
+                        objectFit: "cover",
+                        cursor: "pointer",
+                        border:
+                          selectedImage === img ? "2px solid #0d6efd" : "1px solid #ddd",
+                        borderRadius: "8px",
+                      }}
+                      onClick={() => setSelectedImage(img)}
+                    />
+                  ))}
                 </div>
-                <div className="main-image">
+
+                {/* Mobile slider: d-md-none
+                <div className="d-none d-md-flex overflow-auto gap-2 mb-2">
+                  {[product.image, ...(product.subImages || [])].map((img, idx) => (
+                    <Image
+                      key={idx}
+                      src={`${URL}/uploads/${img}`}
+                      thumbnail
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "cover",
+                        cursor: "pointer",
+                        border:
+                          selectedImage === img ? "2px solid #0d6efd" : "1px solid #ddd",
+                        borderRadius: "8px",
+                        flexShrink: 0,
+                      }}
+                      onClick={() => setSelectedImage(img)}
+                    />
+                  ))}
+                </div> */}
+
+                {/* Main image */}
+                <div {...handlers} className="main-image position-relative">
+                {selectedImage && (
                   <motion.img
-                        key={selectedImage} // để khi đổi ảnh nó animate lại
-                        src={`${URL}/uploads/${selectedImage}`}
-                        alt={product.name}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4 }}
-                        whileHover={{ scale: 1.05 }}
-                      />
-                </div>
+                    key={selectedImage}
+                    src={`${URL}/uploads/${selectedImage}`}
+                    alt={product.name}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4 }}
+                    className="w-100 rounded"
+                  />
+                )}
+
+                {/* Nút trái */}
+                <button
+                  className="nav-arrow nav-arrow-left d-md-none d-flex "
+                  style={{ zIndex: 10 }}
+                  onClick={() => {
+                    const currentIndex = allImages.indexOf(selectedImage);
+                    const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length;
+                    setSelectedImage(allImages[prevIndex]);
+                  }}
+                >
+                  &#8592;
+                </button>
+
+                {/* Nút phải */}
+                <button
+                  className="nav-arrow nav-arrow-right d-md-none d-flex "
+                  style={{ zIndex: 10 }}
+                  onClick={() => {
+                    const currentIndex = allImages.indexOf(selectedImage);
+                    const nextIndex = (currentIndex + 1) % allImages.length;
+                    setSelectedImage(allImages[nextIndex]);
+                  }}
+                >
+                  &#8594;
+                </button>
+              </div>
               </div>
             </Col>
+
             <Col md={6} xs={12}>
               {" "}
               <div className="product-info">
-                <h1
-                  style={{ marginBottom: "20px", fontSize: "25px" }}
-                  className="product-name product-name-rp"
-                >
+                 {/* Tên sản phẩm */}
+                <h1 className="product-name fw-bold mb-3" style={{ fontSize: "28px" }}>
                   {product.name}
                 </h1>
+                
                 {product.discount_value && (
-                  <div>
-                    <span className="discount">
+                  <div className="mb-2">
+                     <span className="badge bg-danger fs-6 px-3 py-2">
                       {product.discount_type === "percent"
                         ? `Giảm giá : ${parseInt(product.discount_value)}%`
                         : `Giảm giá : ${product.discount_value.toLocaleString(
@@ -277,8 +329,8 @@ const Product = () => {
                     </span>
                   </div>
                 )}
-                <div className="product-price">
-                  <span className="current-price">
+                <div className="product-price mb-4">
+                  <span className="current-price text-danger fw-bold fs-3 me-3">
                     {(() => {
                       const price = Number(product.price);
                       let finalPrice = price;
@@ -296,17 +348,25 @@ const Product = () => {
                       ).toLocaleString("vi-VN")}đ`;
                     })()}
                   </span>
+                  {product.discount_value > 0 && (
+                    <span className="text-muted text-decoration-line-through fs-6">
+                      {Number(product.price).toLocaleString("vi-VN")}đ
+                    </span>
+                  )}
                 </div>
-
+                {/* Chọn màu sắc */}
                 <div className="product-options">
                   <div
                     style={{ marginBottom: "40px" }}
                     className="color-options"
                   >
-                    <label style={{ marginBottom: "20px" }}>
-                      Màu sắc: {product.selectedColor || "Chọn màu"}
+                    <label className="fw-semibold d-block mb-2">
+                      Màu sắc: 
+                      <span className="text-primary">
+                        {product.selectedColor || " Chọn màu"}
+                      </span>
                     </label>
-                    <div className="color-swatches">
+                    <div className="d-flex flex-wrap gap-2">
                       {product.color?.split(",")?.map((colorName) => {
                         const matchedColor = colors.find(
                           (color) =>
@@ -320,55 +380,69 @@ const Product = () => {
                           <div
                             key={colorName}
                             className={`swatch-container ${
-                              product.selectedColor === colorName
-                                ? "selected"
-                                : ""
-                            }`}
+                                product.selectedColor === colorName ? "selected" : ""
+                              }`}
                             onClick={() => handleColorSelect(colorName)}
+                            style={{
+                                cursor: "pointer",
+                                border:
+                                  product.selectedColor === colorName
+                                    ? "2px solid #000"
+                                    : "1px solid #ddd",
+                                borderRadius: "50%",
+                                padding: "2px",
+                              }}
                           >
                             <div
                               className="swatch"
-                              style={{ backgroundColor: colorCode }}
+                              style={{
+                                backgroundColor: colorCode,
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "50%",
+                              }}
                             ></div>
                           </div>
                         );
                       })}
                     </div>
                   </div>
-
+                  {/* Chọn hình dáng (size) */}
                   <div
                     style={{ marginBottom: "40px" }}
                     className="size-options"
                   >
-                    <label style={{ marginBottom: "20px" }}>
-                     Hình dáng: {product.selectedSize || "Chọn hình dáng"}
+                    <label className="fw-semibold d-block mb-2">
+                      Hình dáng: 
+                       <span className="text-primary">
+                          {product.selectedSize || "Chọn hình dáng"}
+                        </span>
                     </label>
-                    <div className="size-options__a">
-                      <div className="size-buttons">
+                    <div className="d-flex flex-wrap gap-2">
                         {product.size?.split(",")?.map((size) => (
                           <button
                             key={size}
-                            className={`size-button ${
-                              product.selectedSize === size ? "selected" : ""
+                            className={`btn btn-outline-dark rounded-pill px-3 py-2 ${
+                              product.selectedSize === size ? "active" : ""
                             }`}
                             onClick={() => handleSizeSelect(size)}
                           >
                             {size}
                           </button>
                         ))}
-                      </div>
                     </div>
                   </div>
-
+                        {/* Số lượng + Nút giỏ hàng */}
                   <div
                     style={{ marginBottom: "40px" }}
                     className="quantity-selector"
                   >
                     <Row>
-                      <Col md={3} xs={4}>
+                      <Col xs={12} md={3}>
                         {" "}
                         <div className="quantity-controls">
                           <button
+                            className="btn btn-light px-3"
                             onClick={() => handleQuantityChange("decrease")}
                           >
                             -
@@ -380,15 +454,16 @@ const Product = () => {
                             readOnly // Make it read-only as the buttons control the value
                           />
                           <button
+                            className="btn btn-light px-3"
                             onClick={() => handleQuantityChange("increase")}
                           >
                             +
                           </button>
                         </div>
                       </Col>
-                      <Col md={9} xs={8}>
+                      <Col xs={12} md={9}>
                        <motion.button
-                          className="add-to-cart-button"
+                          className=" add-to-cart-button  rounded-pill"
                           onClick={handleAddToCart}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
@@ -400,44 +475,31 @@ const Product = () => {
                   </div>
                 </div>
 
-                <div className="yody-camket">
-                  <h2>Finly cam kết</h2>
+                {/* Cam kết */}
+                <div className="yody-camket mt-4">
+                  <h5 className="fw-bold mb-3">🌟 Âm Sắc Việt cam kết</h5>
                   <motion.ul
-                  initial="hidden"
-                      animate="show"
-                      variants={{
-                        hidden: { opacity: 0 },
-                        show: {
-                          opacity: 1,
-                          transition: { staggerChildren: 0.2 }
-                        }
-                      }}
+                    className="list-unstyled"
+                    initial="hidden"
+                    animate="show"
+                    variants={{
+                      hidden: { opacity: 0 },
+                      show: { opacity: 1, transition: { staggerChildren: 0.2 } },
+                    }}
                   >
                     {product.yodyCamKet?.map((item, index) => (
                       <motion.li
-                        style={{
-                          border: "1px solid #e5d5d5",
-                          borderRadius: "5px",
-                          padding: "15px 10px",
-                          fontSize: "16px",
-                          display: "flex",
-                        }}
                         key={index}
+                        className="d-flex align-items-center mb-2 p-3 border rounded-3 bg-white shadow-sm"
                         variants={{ hidden: { y: 20, opacity: 0 }, show: { y: 0, opacity: 1 } }}
                       >
                         <div
-                          className="d-flex "
-                          style={{
-                            margin: "0 10px",
-                            background: "#e5d5d5",
-                            alignItems: "center",
-                            padding: "0 10px",
-                            borderRadius: "10px",
-                          }}
+                          className="me-3 d-flex align-items-center justify-content-center bg-light rounded-circle"
+                          style={{ width: "40px", height: "40px" }}
                         >
                           {item.icon}
                         </div>
-                        <p> {item.text}</p>
+                        <p className="mb-0">{item.text}</p>
                       </motion.li>
                     ))}
                   </motion.ul>
@@ -445,32 +507,51 @@ const Product = () => {
               </div>
             </Col>
           </div>
-          <Col md={12}>
-            <div className="m-2 product-mota" style={{}}>
-              <button
-                onClick={() => setShowDes(!showDes)}
-                style={{ width: "100%", border: "none", background: "white" }}
-                className="d-flex justify-content-between align-items-center"
-              >
-                <p style={{ fontSize: "20px", fontWeight: "600" }}>
-                  Mô tả sản phẩm
-                </p>
-                <motion.div
-                  animate={{ rotate: showDes ? 45 : 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <MdAddCircleOutline />
-                </motion.div>
+          <Col md={12} className="mb-5">
+             <div className="mt-2 product-mota shadow-sm rounded-3 border">
+               <button
+                      onClick={() => setShowDes(!showDes)}
+                      className="w-100 d-flex justify-content-between align-items-center px-3 py-3 bg-light border-0 rounded-top"
+                      style={{ cursor: "pointer" }}
+                    >
+                 <span style={{ fontSize: "18px", fontWeight: "600" }}>
+                  📖 Mô tả sản phẩm
+                </span>
+                 <motion.div
+                      animate={{ rotate: showDes ? 45 : 0 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ color: "black"}}
+                    >
+                      <MdAddCircleOutline size={24} />
+                    </motion.div>
               </button>
-
-              <div className={`toggle-description ${showDes ? "show" : ""} ` } style={{overflowY:'auto'}}>
-                <div>{product.description}</div>
-                <img
-                  style={{ objectFit: "cover", width: "100%" }}
-                  src={`${URL}/uploads/${product.image}`}
-                  alt={product.name}
-                />
-              </div>
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={showDes ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="overflow-hidden"
+                >
+              <div className={`toggle-description px-3 py-3 bg-white rounded-bottom ${showDes ? "show" : ""} ` } style={{overflowY:'auto'}}>
+                <div
+                    style={{
+                      fontSize: "15px",
+                      lineHeight: "1.6",
+                      color: "#333",
+                      whiteSpace: "pre-line",
+                    }}
+                  >
+                    {product.description}
+                  </div>
+                <div className="text-center mt-3">
+                    <img
+                      src={`${URL}/uploads/${product.image}`}
+                      alt={product.name}
+                      className="img-fluid rounded shadow-sm"
+                      style={{ maxHeight: "400px", objectFit: "cover" }}
+                    />
+                  </div>
+                </div>
+                </motion.div>
             </div>
           </Col>
         </Row>

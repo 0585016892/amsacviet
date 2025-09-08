@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
 import { Spinner, Alert } from "react-bootstrap";
 import { MdOutlineCreditCard } from "react-icons/md";
-import { FaAmazonPay } from "react-icons/fa6";
+import { FaTags, FaWallet } from "react-icons/fa";
+import { FiChevronRight } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../assets/Order.css";
@@ -10,6 +11,10 @@ import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { FiXCircle } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import MOMO from '../img/momo.png'
+import COD from '../img/cod.webp'
+
+
 const Order = () => {
   const { user } = useAuth();
   const URL = process.env.REACT_APP_WEB_URL; 
@@ -162,7 +167,6 @@ const Order = () => {
 
   const wardName =
     wards.find((w) => w.ward_id === selectedWard)?.ward_name || "";
-  //   post
   // Thông tin người dùng và địa chỉ
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -227,68 +231,47 @@ const Order = () => {
       orderData.coupon_id = selectedCoupon.id;
     }
 
-    try {
-      if (paymentMethod === "COD") {
-        // Gửi đơn hàng luôn
-        const res = await fetch(
-          `${URL_API}/orders/add`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(orderData),
-            credentials: "include", // ← Thêm dòng này để CORS hoạt động đúng nếu backend có credentials
-          }
-        );
+   try {
+    // 1. Gửi đơn hàng
+    const res = await fetch(`${URL_API}/orders/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData),
+      credentials: "include", // cần cho COD, Momo backend cũng nhận được cookie/session
+    });
 
-        const data = await res.json();
-        if (res.ok) {
-          if (selectedCoupon) {
-            await fetch(
-              `${URL_API}/coupons/use/${selectedCoupon.id}`,
-              {
-                method: "PATCH",
-              }
-            );
-          }
-          clearOrder();
-          setSuccessMsg(
-            "🎉 Đặt hàng thành công! Bạn sẽ được chuyển về trang chủ..."
-          );
-          setTimeout(() => {
-            navigate("/");
-          }, 1500);
-        } else {
-          setSuccessMsg("Lỗi: " + data.message);
-        }
-      } else if (paymentMethod === "VNPAY") {
-        // Gọi API tạo link thanh toán
-        const res = await fetch(
-          `${URL_API}/orders/create-vnpay`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(orderData),
-          }
-        );
+    const data = await res.json();
 
-        const data = await res.json();
-        // console.log("🔍 Dữ liệu trả về từ API create-vnpay:", data);
-        // console.log(data.paymentUrl);
-        // console.log(res.ok);
-
-        if (res.ok && data.paymentUrl) {
-          window.location.href = data.paymentUrl;
-        } else {
-          setSuccessMsg("Không tạo được link thanh toán.");
-        }
-      }
-    } catch (err) {
-      // console.error("Lỗi khi xử lý đơn hàng:", err);
-      setSuccessMsg("Không thể gửi đơn hàng.");
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      setSuccessMsg("Lỗi: " + (data.message || "Không thể tạo đơn hàng."));
+      return;
     }
-  };
+
+    // 2. Nếu có coupon thì đánh dấu đã dùng
+    if (selectedCoupon) {
+      await fetch(`${URL_API}/coupons/use/${selectedCoupon.id}`, {
+        method: "PATCH",
+      });
+    }
+
+    // 3. Xử lý theo phương thức thanh toán
+    if (paymentMethod === "COD") {
+      clearOrder();
+      setSuccessMsg("🎉 Đặt hàng thành công! Bạn sẽ được chuyển về trang chủ...");
+      setTimeout(() => navigate("/"), 1500);
+    } else if (paymentMethod === "MOMO") {
+      if (data.payUrl) {
+        window.location.href = data.payUrl; // redirect sang MoMo
+      } else {
+        setSuccessMsg("Không tạo được link thanh toán MoMo.");
+      }
+    }
+  } catch (err) {
+    setSuccessMsg("Không thể gửi đơn hàng. Vui lòng thử lại!");
+  } finally {
+    setLoading(false);
+   }
+    };
   //nếu đã đăng nhập
   useEffect(() => {
     if (user) {
@@ -297,6 +280,8 @@ const Order = () => {
       setEmail(user.email || "");
     }
   }, []);
+  console.log(coupons);
+  
   return (
     <div style={{ marginTop: "90px" }}>
       {loading && (
@@ -314,22 +299,22 @@ const Order = () => {
       )}
       <div className="container mt-4">
         <div className="row">
-          <div className="col-md-7">
-            <div className="card p-3 mb-3">
-              <h5>Thông tin người nhận</h5>
+          <div className="col-md-7 mt-5">
+            <div className="card p-3 mb-3 shadow-sm border-0 rounded-3">
+              <h5 className="mb-3">👤 Thông tin người nhận</h5>
               {user ? (
-                <div className="alert alert-info mt-2">
+                <div className="alert alert-success py-2 mb-3 rounded-3">
                   Đã tự động điền thông tin từ tài khoản đăng nhập.
                 </div>
               ) : (
-                <div className="alert alert-info mt-2">
+                 <div className="alert alert-info py-2 mb-3 rounded-3">
                   Khách hàng dùng email để đăng nhập, mật khẩu được gửi về email
                   khách hàng!
                 </div>
               )}
 
-              <div className="mb-2">
-                <label htmlFor="name" className="form-label">
+              <div className="mb-3">
+                <label htmlFor="name" className="form-label ">
                   Nhập tên khách hàng
                 </label>
                 <input
@@ -342,7 +327,7 @@ const Order = () => {
                 />
               </div>
               <div className="mb-2">
-                <label htmlFor="phone" className="form-label">
+                <label htmlFor="phone" className="form-label ">
                   Nhập số điện thoại
                 </label>
                 <input
@@ -355,7 +340,7 @@ const Order = () => {
                 />
               </div>
               <div className="mb-2">
-                <label htmlFor="email" className="form-label">
+                <label htmlFor="email" className="form-label ">
                   Nhập địa chỉ email
                 </label>{" "}
                 <input
@@ -369,85 +354,80 @@ const Order = () => {
                 />{" "}
               </div>
               <div className="mb-2">
-                <div>
-                  <div className="mb-3">
-                    <label className="form-label">Địa chỉ giao hàng</label>
-                    <div className="row g-2">
-                      <div className="col-md-4">
-                        <select
-                          className="form-select"
-                          value={selectedProvince}
-                          onChange={(e) => setSelectedProvince(e.target.value)}
-                        >
-                          <option value="">-- Chọn Tỉnh/Thành phố --</option>
-                          {provinces.map((province) => (
-                            <option
-                              key={province.province_id}
-                              value={province.province_id}
+               <div className="">
+                        <label className="form-label mb-2">Địa chỉ giao hàng</label>
+
+                        <div className="row g-2">
+                          <div className="col-md-4">
+                            <select
+                              className="form-select"
+                              value={selectedProvince}
+                              onChange={(e) => setSelectedProvince(e.target.value)}
                             >
-                              {province.province_name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                              <option value="">-- Tỉnh/Thành phố --</option>
+                              {provinces.map((province) => (
+                                <option key={province.province_id} value={province.province_id}>
+                                  {province.province_name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
 
-                      <div className="col-md-4">
-                        <select
-                          className="form-select"
-                          value={selectedDistrict}
-                          onChange={(e) => setSelectedDistrict(e.target.value)}
-                          disabled={!selectedProvince}
-                        >
-                          <option value="">-- Chọn Quận/Huyện --</option>
-                          {districts.map((district) => (
-                            <option
-                              key={district.district_id}
-                              value={district.district_id}
+                          <div className="col-md-4">
+                            <select
+                              className="form-select"
+                              value={selectedDistrict}
+                              onChange={(e) => setSelectedDistrict(e.target.value)}
+                              disabled={!selectedProvince}
                             >
-                              {district.district_name}
-                            </option>
-                          ))}
-                        </select>
+                              <option value="">-- Quận/Huyện --</option>
+                              {districts.map((district) => (
+                                <option key={district.district_id} value={district.district_id}>
+                                  {district.district_name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="col-md-4">
+                            <select
+                              className="form-select"
+                              value={selectedWard}
+                              onChange={(e) => setSelectedWard(e.target.value)}
+                              disabled={!selectedDistrict}
+                            >
+                              <option value="">-- Phường/Xã --</option>
+                              {wards.map((ward) => (
+                                <option key={ward.ward_id} value={ward.ward_id}>
+                                  {ward.ward_name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="mt-3">
+                          <strong>📌 Địa chỉ đã chọn: </strong>
+                          {selectedProvince && selectedDistrict && selectedWard ? (
+                            <span className="text-black px-3 py-2 ">
+                              {[wardName, districtName, provinceName].filter((i) => i !== "").join(", ")}
+                            </span>
+                          ) : (
+                            <span className="text-danger fst-italic">Chưa chọn đầy đủ</span>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="col-md-4">
-                        <select
-                          className="form-select"
-                          value={selectedWard}
-                          onChange={(e) => setSelectedWard(e.target.value)}
-                          disabled={!selectedDistrict}
-                        >
-                          <option value="">-- Chọn Phường/Xã --</option>
-                          {wards.map((ward) => (
-                            <option key={ward.ward_id} value={ward.ward_id}>
-                              {ward.ward_name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="mt-3">
-                      <strong>Địa chỉ đã chọn:</strong>{" "}
-                      {selectedProvince && selectedDistrict && selectedWard ? (
-                        [wardName, districtName, provinceName]
-                          .filter((item) => item !== "")
-                          .join(", ")
-                      ) : (
-                        <span>Chưa chọn đầy đủ</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
               </div>
               <div className="mb-2">
-                <label htmlFor="note" className="form-label">
-                  Nhập ghi chú (không bắt buộc)
+                <label htmlFor="note" className="form-label fw-semibold">
+                  Ghi chú (không bắt buộc)
                 </label>
                 <textarea
                   className="form-control"
                   id="note"
                   rows="3"
+                  placeholder="Ví dụ: Giao buổi sáng, gọi trước khi đến..."
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                 ></textarea>
@@ -506,81 +486,67 @@ const Order = () => {
           </div>
 
           <div className="col-md-5 mt-5">
-            <div className="card p-3">
+            <div className="card p-3 shadow-sm border-0 rounded-3">
               <Button
                 onClick={() => setShowCoupons(!showCoupons)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid #a7a7a7",
-                  borderRadius: "15px",
-                }}
-                className="d-flex p-2 justify-content-between align-items-center mb-3"
+                variant="light"
+                className="d-flex justify-content-between align-items-center mb-3 shadow-sm w-100 p-3 rounded-3"
+                style={{ border: "1px solid #ddd" }}
               >
-                <div style={{ width: "100%" }} className="d-flex">
-                  <MdOutlineCreditCard
-                    size={25}
-                    className="mx-3"
-                    style={{ color: "blue" }}
-                  />
-                  <div
-                    style={{
-                      color: "black",
-                    }}
-                  >
-                    Chọn khuyến mãi
-                  </div>
+                <div className="d-flex align-items-center">
+                   <FaTags size={20} className="me-3 text-danger" />
+                  <span className="fw-semibold text-dark">Chọn khuyến mãi</span>
                 </div>
-                <button className="btn btn-sm">></button>
+                <FiChevronRight size={20} className="text-secondary" />
               </Button>
               <Button
                 onClick={() => setShowPayments(true)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid #a7a7a7",
-                  borderRadius: "15px",
-                }}
-                className="d-flex p-2 justify-content-between align-items-center mb-3"
+                variant="light"
+                className="d-flex justify-content-between align-items-center mb-3 shadow-sm w-100 p-3 rounded-3"
+                style={{ border: "1px solid #ddd" }}
               >
-                <div style={{ width: "100%" }} className="d-flex">
-                  <MdOutlineCreditCard
-                    size={25}
-                    className="mx-3"
-                    style={{ color: "blue" }}
-                  />
-                  <div style={{ color: "black" }}>
+                <div className="d-flex align-items-center">
+                   <FaWallet size={20} className="me-3 text-success" />
+                  <span className="fw-semibold text-dark">
                     {paymentMethod === "COD"
                       ? "COD - Thanh toán khi nhận hàng"
-                      : "VNPAY - Chuyển khoản"}
-                  </div>
+                      : "MOMO - Chuyển khoản"}
+                  </span>
                 </div>
-                <button className="btn btn-sm">{">"}</button>
+                <FiChevronRight size={20} className="text-secondary" />
               </Button>
 
               <hr className="mb-3" />
 
-              <div>
-                <h5>Chi tiết đơn hàng</h5>
+              <div className="p-3 border rounded-3 shadow-sm bg-white">
+                <h5 className="mb-3">🧾 Chi tiết đơn hàng</h5>
+                
                 <div className="d-flex justify-content-between mb-2">
-                  <span>Tổng tiền</span>
-                  <span>{total.toLocaleString("vi-VN")}đ</span>
+                  <span className="text-muted">Tổng tiền</span>
+                  <span className="fw-semibold">{total.toLocaleString("vi-VN")}đ</span>
                 </div>
+
                 <div className="d-flex justify-content-between mb-2">
-                  <span>Giảm giá</span>
-                  <span className="text-danger">
+                  <span className="text-muted">Giảm giá</span>
+                  <span className="text-danger fw-semibold">
                     -{discount.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
+
                 <div className="d-flex justify-content-between mb-2">
-                  <span>Phí vận chuyển</span>
-                  <span>{shipping.toLocaleString("vi-VN")}đ</span>
+                  <span className="text-muted">Phí vận chuyển</span>
+                  <span className="fw-semibold">{shipping.toLocaleString("vi-VN")}đ</span>
                 </div>
+
                 <hr className="mb-2" />
-                <div className="d-flex justify-content-between fw-bold mb-3">
+
+                 <div className="d-flex justify-content-between fw-bold fs-5 mb-2">
                   <span>Thành tiền</span>
                   <span className="text-danger">
                     {(total - discount + shipping).toLocaleString("vi-VN")}đ
                   </span>
                 </div>
+
                 {discount > 0 && (
                   <small className="text-muted">
                     Tiết kiệm {discount.toLocaleString("vi-VN")}đ
@@ -588,10 +554,9 @@ const Order = () => {
                 )}
               </div>
 
-              <div className="alert alert-info mt-3" role="alert">
-                Đơn từ 2 sản phẩm được miễn phí vận chuyển nhé!
+              <div className="alert alert-info mt-3 rounded-3 shadow-sm" role="alert">
+                🚚 Đơn từ <strong>2 sản phẩm</strong> được <u>miễn phí vận chuyển</u> nhé!
               </div>
-
               <button
                 onClick={handleSubmit}
                 disabled={
@@ -641,8 +606,8 @@ const Order = () => {
           ></div>
 
           <div className={`coupon-list ${showCoupons ? "show" : ""}`}>
-            <div className="d-flex justify-content-between m-2">
-              <h6>Chọn mã giảm giá</h6>
+            <div className="d-flex justify-content-between align-items-center p-3">
+              <h6 className="m-0 fw-bold">🎟️ Chọn mã giảm giá</h6>
               <button
                 style={{
                   color: "black",
@@ -652,10 +617,11 @@ const Order = () => {
                 }}
                 onClick={() => setShowCoupons(false)}
               >
-                <FiXCircle style={{ color: "#575151" }} size={30} />
+                <FiXCircle style={{ color: "#575151" }} size={28} />
               </button>
             </div>
-            <hr />
+            <hr className="my-2" />
+
             {coupons
               ?.filter(
                 (coupon) =>
@@ -664,36 +630,90 @@ const Order = () => {
                   total >= coupon.min_order_total &&
                   new Date(coupon.end_date) >= new Date()
               )
-              .map((coupon) => (
-                <div key={coupon.id} className="coupon-item">
-                  <div className="d-flex">
-                    <div className="rounded-circle">%</div>
-                    <div>
-                      <div className="font-weight-bold">
-                        {coupon.code || "Ưu đãi đặc biệt"}
+              .map((coupon) => {
+                const isSelected = selectedCoupon?.id === coupon.id;
+
+                return (
+                  <div
+                    key={coupon.id}
+                    onClick={() => setSelectedCoupon(coupon)}
+                    className={`d-flex justify-content-between align-items-center p-3 mb-3 rounded-3 shadow-sm coupon-card ${
+                      isSelected ? "selected" : ""
+                    }`}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {/* Icon voucher */}
+                    <div className="d-flex align-items-center">
+                      <div
+                        className="d-flex justify-content-center align-items-center rounded-circle me-3"
+                        style={{
+                          background: "#ffe5d0",
+                          width: "45px",
+                          height: "45px",
+                        }}
+                      >
+                        <span className="fw-bold text-danger fs-5">
+                          {coupon.discount_type === "percent" ? "%" : "₫"}
+                        </span>
                       </div>
-                      <div className="text-secondary">
-                        Giảm{" "}
-                        {coupon.discount_type === "fixed"
-                          ? parseFloat(coupon.discount_value).toLocaleString(
-                              "vi-VN"
-                            ) + " ₫"
-                          : `${parseFloat(coupon.discount_value).toLocaleString(
-                              "vi-VN"
-                            )} %`}
+
+                      {/* Thông tin */}
+                      <div>
+                        <div className="fw-bold text-dark">
+                          {coupon.code || "Ưu đãi đặc biệt"}
+                        </div>
+                        <div className="text-secondary small">
+                          Giảm{" "}
+                          {coupon.discount_type === "fixed"
+                            ? parseFloat(coupon.discount_value).toLocaleString("vi-VN") +
+                              " ₫"
+                            : `${parseFloat(
+                                coupon.discount_value
+                              ).toLocaleString("vi-VN")} %`}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tick chọn */}
+                    <div>
+                     <div
+                        className={`coupon-check ${isSelected ? "selected" : ""}`}
+                        onClick={() => setSelectedCoupon(coupon)}
+                      >
+                        {isSelected && <span className="check-icon">✓</span>}
                       </div>
                     </div>
                   </div>
-                  <Form.Check
-                    type="radio"
-                    name="promotion"
-                    onChange={() => setSelectedCoupon(coupon)}
-                    checked={selectedCoupon?.id === coupon.id}
-                  />
-                </div>
-              ))}
+                );
+              })}
           </div>
+
+          <style jsx>{`
+  .coupon-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  .coupon-check:hover {
+    border-color: #ffc107;
+  }
+  .coupon-check .check-icon {
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .coupon-check.selected {
+    background-color: #ffc107;
+    border-color: #ffc107;
+  }
+`}</style>
         </>
+
       )}
       {showPayments && (
         <>
@@ -703,14 +723,15 @@ const Order = () => {
           ></div>
 
           <div className={`coupon-list ${showPayments ? "show" : ""}`}>
-            <div className="d-flex justify-content-between m-2">
-              <h6>Chọn phương thức thanh toán</h6>
+            <div
+              className="d-flex justify-content-between m-2  align-items-center" >
+              <h6 className="m-0 fw-bold">Chọn phương thức thanh toán</h6>
               <button
                 style={{
                   color: "black",
-                  borderRadius: "50%",
                   background: "transparent",
                   border: "none",
+                  cursor: "pointer",
                 }}
                 onClick={() => setShowPayments(false)}
               >
@@ -719,14 +740,29 @@ const Order = () => {
             </div>
             <hr />
 
-            <div className="coupon-item d-flex justify-content-between align-items-center">
-              <div className="d-flex">
-                <div className="rounded-circle">
-                  <FaAmazonPay size={20} />
+            <div className={`coupon-item d-flex justify-content-between align-items-center p-3 mb-2 rounded-3 ${
+                paymentMethod === "COD" ? "bg-light border border-success" : "border"
+                  }`}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setPaymentMethod("COD")}
+                >
+              <div className="d-flex align-items-center ">
+                <div
+                 style={{
+                  background: "#28a74520",
+                  width: "40px",
+                  height: "40px",
+                }}
+                  className="rounded-circle d-flex justify-content-center align-items-center">
+                   <img src={COD}  style={{
+                  borderRadius: "50%",
+                  width: "40px",
+                  height: "40px",
+                }} />
                 </div>
-                <div className="ms-2">
-                  <div className="fw-bold">COD</div>
-                  <div className="text-secondary">Thanh toán khi nhận hàng</div>
+                <div className="ms-3">
+                   <div className="fw-bold text-dark">COD</div>
+                    <div className="text-secondary small">Thanh toán khi nhận hàng</div>
                 </div>
               </div>
               <Form.Check
@@ -734,24 +770,40 @@ const Order = () => {
                 name="payment"
                 onChange={() => setPaymentMethod("COD")}
                 checked={paymentMethod === "COD"}
+                
               />
             </div>
 
-            <div className="coupon-item d-flex justify-content-between align-items-center">
-              <div className="d-flex">
-                <div className="rounded-circle">
-                  <MdOutlineCreditCard size={20} />
+            <div  className={`coupon-item d-flex justify-content-between align-items-center p-3 mb-2 rounded-3 ${
+                  paymentMethod === "MOMO" ? "bg-light border border-danger" : "border"
+                }`}
+                style={{ cursor: "pointer" }}
+                onClick={() => setPaymentMethod("MOMO")}
+              >
+              <div className="d-flex align-items-center">
+                <div className="rounded-circle d-flex justify-content-center align-items-center"
+                style={{
+                  background: "#ff008020",
+                  width: "40px",
+                  height: "40px",
+                }}
+                >
+                  <img src={MOMO}  style={{
+                  borderRadius: "50%",
+                  width: "40px",
+                  height: "40px",
+                }} />
                 </div>
                 <div className="ms-2">
-                  <div className="fw-bold">VNPAY</div>
-                  <div className="text-secondary">Chuyển khoản qua VNPAY</div>
+                    <div className="fw-bold text-dark">MOMO</div>
+                   <div className="text-secondary small">Chuyển khoản qua MOMO</div>
                 </div>
               </div>
               <Form.Check
                 type="radio"
                 name="payment"
-                onChange={() => setPaymentMethod("VNPAY")}
-                checked={paymentMethod === "VNPAY"}
+                onChange={() => setPaymentMethod("MOMO")}
+                checked={paymentMethod === "MOMO"}
               />
             </div>
           </div>

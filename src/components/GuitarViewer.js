@@ -9,13 +9,6 @@ function GuitarModel(props) {
   const ref = useRef();
   const [hovered, setHovered] = useState(false);
 
-  // useFrame(() => {
-  //   if (ref.current) {
-  //     ref.current.rotation.y += hovered ? 0.01 : 0.005;
-  //     ref.current.scale.setScalar(hovered ? 1.25 : 1.2);
-  //   }
-  // });
-
   return (
     <primitive
       ref={ref}
@@ -29,27 +22,17 @@ function GuitarModel(props) {
 
 const GuitarViewer = () => {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "40px",
-        background: "linear-gradient(135deg, #0ff, #9b59b6, #2ecc71)",
-        borderRadius: "12px",
-        boxShadow: "0 10px 40px rgba(0,255,255,0.3), 0 0 30px rgba(155,89,182,0.3)",
-      }}
-    >
+    <div className="guitar-viewer">
       {/* Left: Text & Button */}
       <motion.div
-        style={{ flex: 1, color: "#fff", paddingRight: "30px" }}
+        className="guitar-text"
         initial={{ opacity: 0, x: -100 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: 1 }}
       >
         <motion.h2
-          style={{ fontSize: "2.5rem", marginBottom: "20px", fontWeight: "bold" }}
+          className="guitar-title"
           initial={{ y: -30, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
@@ -59,27 +42,17 @@ const GuitarViewer = () => {
         </motion.h2>
 
         <motion.p
-          style={{ fontSize: "1.1rem", lineHeight: "1.6", opacity: 0.9 }}
+          className="guitar-desc"
           initial={{ y: 30, opacity: 0 }}
           whileInView={{ y: 0, opacity: 0.9 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4, duration: 0.8 }}
         >
-          Khám phá bộ sưu tập đàn piano mới với thiết kế tinh tế, âm thanh sống động. 
+          Khám phá bộ sưu tập đàn piano mới với thiết kế tinh tế, âm thanh sống động.
         </motion.p>
 
         <motion.button
-          style={{
-            marginTop: "30px",
-            padding: "12px 28px",
-            backgroundColor: "#0ff",
-            color: "#1a1a2e",
-            border: "none",
-            borderRadius: "10px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            fontSize: "1rem",
-          }}
+          className="guitar-button"
           whileHover={{ scale: 1.1, backgroundColor: "#9b59b6", color: "#fff" }}
           whileTap={{ scale: 0.95 }}
         >
@@ -91,7 +64,7 @@ const GuitarViewer = () => {
 
       {/* Right: 3D Model */}
       <motion.div
-        style={{ flex: 1, height: "600px" }}
+        className="guitar-3d"
         initial={{ opacity: 0, x: 100 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true, amount: 0.5 }}

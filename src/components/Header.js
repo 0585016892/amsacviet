@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, Button, Navbar,Card,Badge } from "react-bootstrap";
+import { Row, Col, Form, Button, Navbar,Card,Container } from "react-bootstrap";
 import { FaSearch, FaBars } from "react-icons/fa";
 import Logo from "../img/logo.png";
 import a from "../img/1.webp";
@@ -37,7 +37,7 @@ const Header = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
+console.log()
   // Lắng nghe sự thay đổi của location (URL)
   useEffect(() => {
     // Khi URL thay đổi, đóng menu
@@ -110,7 +110,9 @@ const Header = () => {
       window.removeEventListener("cartUpdated", updateCartCount);
     };
   }, []);
-
+const [activeCategory, setActiveCategory] = useState(
+  categoryData && categoryData.length > 0 ? categoryData[0] : null
+);
   return (
     <div>
       {!isMenuOpen && (
@@ -229,7 +231,7 @@ const Header = () => {
               top: "0", // Điều chỉnh cho phù hợp với chiều cao của Navbar
               left: "0",
               width: "100%",
-              maxHeight: "95%",
+              maxHeight: "100%",
               height: "100%", // Hoặc một chiều cao cố định tùy ý
               backgroundColor: "white",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
@@ -288,7 +290,7 @@ const Header = () => {
             </div>
             {/* Nội dung menu của bạn sẽ được đặt ở đây */}
             <div className="m-md-4 m-5">
-              <div className="category_blog d-none d-md-flex justify-content-center gap-4">
+              {/* <div className="category_blog d-none d-md-flex justify-content-center gap-4">
                 <a
                   href="/he-thong-cua-hang"
                   className="d-flex align-items-center gap-2 justify-content-center"
@@ -303,102 +305,132 @@ const Header = () => {
                   <p>TIN TỨC</p>
                   <FaBlog size={25} />
                 </a>
-              </div>
-              <Row>
-                  <Col md={9} className="d-flex" >
+              </div> */}
+              {/* Nút đóng góc phải */}
+                    <button
+                      onClick={toggleMenu}
+                      style={{
+                        position: "absolute",
+                        top: "95px",
+                        right: "15px",
+                        background: "rgb(248, 251, 26)",
+                        border: "none",
+                        borderRadius: "50%",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <IoMdClose size={22} color="#000" />
+                    </button>
+              <Container  fluid className="py-4"> 
+                {/* Danh mục */}
+                <div  className="mb-4">
+                  <h4 className="fw-bold mb-3 text-center">Danh mục sản phẩm</h4>
 
-                {categoryData?.map((categoryItem) => (
-                  <div key={categoryItem.id}>
-                    <div className="d-flex align-items-center">
-                      <h3 style={{ margin: "0 10px" }}>{categoryItem.name}</h3>
-                      <GoArrowUpRight size={25} />
-                    </div>
-                    <motion.ul
-                      initial="hidden"
-                      animate="visible"
-                      className="category-list">
-                      {categoryItem.dmCon?.map((subCategory) => (
-                        <motion.li  variants={categoryVariants} key={subCategory.child_id}>
-                          <div className="d-flex justify-content-between">
-                            <div className="category_item d-flex align-items-center justify-content-center">
-                              {/* Hiển thị ảnh nếu có */}
-                              {subCategory.child_img && (
-                                <img
-                                  src={a}
-                                  height={45}
-                                  alt={subCategory.child_name}
-                                />
-                              )}
-                              <Link to={`/category/${subCategory.child_slug}`}>
-                                {subCategory.child_name}
-                              </Link>
-                            </div>
-                            {/* Thêm điều kiện để hiển thị icon IoIosArrowDown nếu cần */}
-                            {subCategory.hasSubmenu && (
-                              <div>
-                                <IoIosArrowDown />
-                              </div>
-                            )}
-                          </div>
-                        </motion.li>
-                      ))}
-                    </motion.ul>
-                    </div>
-                ))}
-                  </Col>
-                  
-                <Col md={3}>
+                  {/* Tabs danh mục cha */}
+                  <div className="d-flex justify-content-center flex-wrap gap-3 border-bottom pb-2 mb-3">
+                    {categoryData?.map((categoryItem) => (
+                      <button
+                        key={categoryItem.id}
+                        className={`btn btn-sm rounded-pill ${
+                          activeCategory?.id === categoryItem.id
+                            ? "btn-dark text-white"
+                            : "btn-outline-dark"
+                        }`}
+                        onClick={() => setActiveCategory(categoryItem)}
+                      >
+                        {categoryItem.name}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Grid danh mục con */}
+                 <motion.div
+                  key={activeCategory?.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="d-grid"
+                  style={{
+                    gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                    gap: "15px",
+                  }}
+                >
+                  {activeCategory?.dmCon?.map((subCategory) => (
+                    <motion.div
+                      key={subCategory.child_id}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Link
+                        to={`/category/${subCategory.child_slug}`}
+                        className="text-decoration-none"
+                      >
+                        <div
+                          className="rounded-pill text-center fw-semibold shadow-sm"
+                          style={{
+                            padding: "12px 18px",
+                            background: "#f8f9fa",
+                            border: "1px solid #dee2e6",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          {subCategory.child_name}
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </motion.div>
+
+                </div>
+
+
+                <div className="d-flex gap-3">
                   {Array.isArray(collections) && collections.length > 0 ? (
                       collections.map((col) => (
-                        <Col md={12} key={col.id} className="mb-4">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}     // bắt đầu mờ và trượt xuống
-        animate={{ opacity: 1, y: 0 }}      // hiện rõ và về đúng vị trí
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        whileHover={{ scale: 1.03 }}        // khi hover thì phóng to nhẹ
-      >
-        <Card className="border-0 shadow-sm h-90">
-          <Card.Img
-            variant="top"
-            src={
-              col.image?.startsWith("http")
-                ? col.image
-                : `${process.env.REACT_APP_WEB_URL}/uploads/${col.image}`
-            }
-            style={{ height: "200px", objectFit: "cover" }}
-          />
-          <Card.Body>
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <Card.Title className="mb-0 fs-5">{col.name}</Card.Title>
-            </div>
-            <Card.Text className="text-muted" style={{ minHeight: "60px" }}>
-              {col.description?.slice(0, 100)}...
-            </Card.Text>
-          </Card.Body>
-        </Card>
-      </motion.div>
-    </Col>
+                        <Col md={12} key={col.id} className="mb-4 " style={{ width:'40%'}}>
+                          <motion.div
+                           
+                    initial={{ opacity: 0, y: 30 }}     // bắt đầu mờ và trượt xuống
+                    animate={{ opacity: 1, y: 0 }}      // hiện rõ và về đúng vị trí
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    whileHover={{ scale: 1.03 }}        // khi hover thì phóng to nhẹ
+                  >
+                    <Card className="border-0 shadow-sm h-90">
+                      <Card.Img
+                        variant="top"
+                        src={
+                          col.image?.startsWith("http")
+                            ? col.image
+                            : `${process.env.REACT_APP_WEB_URL}/uploads/${col.image}`
+                        }
+                        style={{ height: "200px", objectFit: "cover" }}
+                      />
+                      <Card.Body>
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <Card.Title className="mb-0 fs-5">{col.name}</Card.Title>
+                        </div>
+                        <Card.Text className="text-muted" style={{ minHeight: "60px" }}>
+                          {col.description?.slice(0, 100)}...
+                        </Card.Text>
+                      </Card.Body>
+                    </Card>
+                  </motion.div>
+                </Col>
                       ))
                     ) : (
                       <p></p>
                     )}
                  
-                </Col>
-              </Row>
+                </div>
+                </Container>
             </div>
-            <div
-              className="d-flex justify-content-center position-absolute btn_close_ac"
-              style={{ width: "100%", bottom: "-50px" }}
-            >
-              <Button
-                onClick={toggleMenu}
-                className=" d-flex align-items-center m-1 btn_close"
-                style={{ background: "rgb(248 251 26)" }}
-              >
-                <IoMdClose className="m-1" />
-                Đóng
-              </Button>
-            </div>
+           {/* Nút đóng */}
+            
           </div>
         </div>
       )}

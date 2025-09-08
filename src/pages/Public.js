@@ -18,9 +18,13 @@ const Public = () => {
       className="d-flex flex-column min-vh-100 bg-main-300"
       style={{ width: "100%" }}
     >
-      <div className="position-absolute" style={{ zIndex: "9999999999999" }}>
-        <ChatBox userId={userId} />
-      </div>
+      {userId && (
+        <div className="position-absolute" style={{ zIndex: 9999999999999 }}>
+          <ChatBox userId={userId} />
+        </div>
+      )}
+
+      
       
       {/* Header */}
       <div className="container-fluid" style={{ background: "transparent" }}>
@@ -28,7 +32,7 @@ const Public = () => {
       </div>
 
       {/* Content chính */}
-      <div className="flex-grow-1">
+      <div className="flex-grow-1 overflow-auto">
         <Outlet />
       </div>
 
