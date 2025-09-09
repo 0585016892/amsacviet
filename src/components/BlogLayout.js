@@ -166,7 +166,7 @@ const BlogLayout = () => {
                     className="text-end bg-white border-top-0 pt-0 pb-3 pe-3 text-muted"
                     style={{ fontSize: '0.85rem' }}
                   >
-                    FINLY | Ngày đăng: {new Date(latestPost.created_at).toLocaleDateString()}
+                    Âm Sắc Màu | Ngày đăng: {new Date(latestPost.created_at).toLocaleDateString()}
                   </Card.Footer>
                 </Card>
               </motion.div>
@@ -200,7 +200,7 @@ const BlogLayout = () => {
                     />
                     <Card.Body className="p-0">
                       <Card.Subtitle className="text-muted" style={{ fontSize: '0.75rem' }}>
-                        FINLY | Ngày đăng: {new Date(post.created_at).toLocaleDateString()}
+                        Âm Sắc Màu | Ngày đăng: {new Date(post.created_at).toLocaleDateString()}
                       </Card.Subtitle>
                       <Card.Title as="h5" className="mb-0 lh-base">
                         {post.title}
