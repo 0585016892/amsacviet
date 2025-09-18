@@ -27,4 +27,5 @@ const api = axios.create({
   },
 });
 
+export default API_URL; // export mặc định
 export { api };
