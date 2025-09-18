@@ -1,6 +1,5 @@
 import axios from "axios";
-import { API_URL, api } from "./config";
-
+import API_URL from "./config";
 
 export const getSlidesByArea = async (display_area) => {
   try {

@@ -1,5 +1,4 @@
-import { API_URL, api } from "./config";
-
+import API_URL from "./config";
 export const getCategoryData = async (slug) => {
   try {
     const response = await fetch(`${API_URL}/products/category/${slug}`);
