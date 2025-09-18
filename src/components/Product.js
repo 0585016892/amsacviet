@@ -16,9 +16,13 @@ import { showSuccessToast, showErrorToast } from "../utils/toastUtils";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { useSwipeable } from "react-swipeable";
+import ProductReviews from "./ProductReviews";
+
 const Product = () => {
   const URL = process.env.REACT_APP_WEB_URL; 
-
+  const user = JSON.parse(localStorage.getItem("user")); // user đã đăng nhập
+  console.log(user);
+  
   const { addToCart } = useCart();
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
@@ -616,6 +620,9 @@ showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ s�
         )}
         </AnimatePresence>
 
+      </Container>
+      <Container>
+        <ProductReviews productId={product.id} user={user} />
       </Container>
     </div>
   );

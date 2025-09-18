@@ -12,7 +12,7 @@
   import { showSuccessToast ,showErrorToast} from "../utils/toastUtils";
   import noti from '../img/noti.png';
 import { useNavigate } from "react-router-dom";
-  
+  import axios from "axios";
 
   const statusTabs = [
     { key: "all", label: "Tất cả" },
@@ -58,13 +58,14 @@ import { useNavigate } from "react-router-dom";
 
     const [notifications, setNotifications] = useState([]);
 
+    const [avatarFile, setAvatarFile] = useState(null);
+    const [avatarPreview, setAvatarPreview] = useState(null); 
 // lấy data
     useEffect(() => {
       
       const fetchOrders = async () => {
         try {
           const userData = await userApi.getProfile();
-          console.log("👤 User fetched:", userData); // <-- log này
           setUser(userData);
           setUpdateForm({
             full_name: userData.full_name,
@@ -100,32 +101,25 @@ import { useNavigate } from "react-router-dom";
     useEffect(() => {
       if (!user?.id) return;
 
-       console.log("📡 Kết nối socket, join room:", `user_${user.id}`);
         socket.emit("join", `user_${user.id}`); // giống hệt backend
 
 
       const handleNewNoti = (notif) => {
-        console.log("🔔 Nhận thông báo mới:", notif);
         setNotifications((prev) => [notif, ...prev]); // cập nhật realtime
       };
 
       socket.on("newNotification", handleNewNoti);
 
       return () => {
-        console.log("🛑 Ngắt lắng nghe notification");
         socket.off("newNotification", handleNewNoti);
       };
     }, [user?.id]);
     const markNotificationReadAndNavigate = async (notif) => {
       if (!notif) return;
-      console.log(notif);
       
       try {
         if (userApi.markNotificationAsRead) {
-          console.log("notif.id:", notif.notification_id)
           const res = await userApi.markNotificationAsRead(notif.notification_id);
-          console.log(res);
-          
           if (res.success) {
             // Cập nhật local state của notifications
             setNotifications(prev =>
@@ -136,17 +130,16 @@ import { useNavigate } from "react-router-dom";
         if (notif.order_id) {
           navigate(`/order-tracking/${notif.order_id}`, { state: { order: notif.order } });
         } else {
-          console.warn("Notification không có order_id:", notif);
+          showSuccessToast("Notification không có order_id:", notif);
         }
       } catch (error) {
-        console.error("Lỗi khi đánh dấu notification:", error);
+        showSuccessToast("Lỗi khi đánh dấu notification:", error);
       }
     };
     const handleMarkAllAsRead = async () => {
         if (!user?.id) return;
         try {
           const res = await userApi.markAllNotificationsAsRead(user?.id);
-          console.log(res);
 
           if (res.success) {
             // Cập nhật trạng thái local
@@ -155,7 +148,7 @@ import { useNavigate } from "react-router-dom";
             );
           }
         } catch (err) {
-          console.error("Lỗi khi đánh dấu tất cả notification:", err);
+          showSuccessToast("Lỗi khi đánh dấu tất cả notification:", err);
         }
       };
 
@@ -163,7 +156,6 @@ import { useNavigate } from "react-router-dom";
     
 useEffect(() => {
   const handleOrderUpdate = (data) => {
-    console.log("📦 Cập nhật trạng thái đơn hàng:", data);
     setOrders((prev) =>
       prev.map((order) =>
         order.id === Number(data.orderId)
@@ -188,10 +180,40 @@ useEffect(() => {
       return orders;
     };
     // Ảnh đại diện
-    const handleUpdateImg = async () => {
-          showSuccessToast("Thông báo","Tính năng này chưa phát triển!");
-        
-    };
+    const handleUpdateImg = async (file) => {
+        if (!file) return;
+
+        // Hiển thị preview tạm thời ngay khi chọn ảnh
+        const reader = new FileReader();
+        reader.onload = (e) => setAvatarPreview(e.target.result);
+        reader.readAsDataURL(file);
+
+        // Upload lên server
+        const formData = new FormData();
+        formData.append("customer_id", user.id);
+        formData.append("image", file);
+
+        try {
+          const res = await axios.post(
+            `${process.env.REACT_APP_WEB_URL}/api/customers/add-image`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
+
+          // Cập nhật avatar trong state user nếu cần
+          if (res.data && res.data.data?.image) {
+            setUser((prev) => ({ ...prev, avatar: res.data.data.image }));
+            // Nếu server trả về URL đầy đủ
+            setAvatarPreview(`${process.env.REACT_APP_WEB_URL}/uploads/customers/${res.data.data.image}`);
+          }
+
+          showSuccessToast("Thông báo","Cập nhật ảnh đại diện thành công!");
+        } catch (err) {
+          console.error(err);
+          showSuccessToast("Thông báo","Upload thất bại, thử lại!");
+        }
+      };
+
     // update pass
     const handlePasswordChange = async () => {
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -205,7 +227,7 @@ useEffect(() => {
           showSuccessToast("Thông báo",err.response?.data?.message || "Đổi mật khẩu thất bại");
         }
     };
-      const handleUpdateProfile = async () => {
+    const handleUpdateProfile = async () => {
         try {
           const res = await userApi.updateProfile(updateForm);
           showSuccessToast("Thông báo",res.message || "Cập nhật thành công");
@@ -260,6 +282,7 @@ useEffect(() => {
       </motion.div>
     );
     }
+console.log(user);
 
     return (
       <Container className="profile" style={{ height: "800px" }}>
@@ -275,7 +298,20 @@ useEffect(() => {
             >
                     <div className="d-flex align-items-center pb-3 border-bottom mb-3">
                 <div className="bg-light text-secondary rounded-circle d-flex justify-content-center align-items-center" style={{ width: '50px', height: '50px' }}>
-                  <FaUser size={25} />
+                  {user.images ? (
+                            <img
+                              src={`${URL}/uploads/customers/${user.images}`}
+                              alt="avatar"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <FaUser size={25} color="#bbb" />
+                          )}
                 </div>
                 <div className="ms-3">
                   <div className="fw-bold fs-6">{user.full_name}</div>
@@ -652,17 +688,37 @@ useEffect(() => {
                     {/* Cột phải: Avatar */}
                     <Col md={4} className="d-flex flex-column align-items-center justify-content-center border-start py-5">
                       <motion.div
-                        className="text-center"
+                        className="text-center d-flex justify-content-center align-content-center flex-column"
                         whileHover={{ scale: 1.05 }}
                         transition={{ type: "spring", stiffness: 200 }}
                       >
                         <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
                           style={{ width: '100px', height: '100px' }}>
-                          <FaUser size={60} color="#bbb" />
+                          {user.images ? (
+                            <img
+                              src={`${URL}/uploads/customers/${user.images}`}
+                              alt="avatar"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <FaUser size={60} color="#bbb" />
+                          )}
                         </div>
-                        <Button variant="outline-secondary" className="mb-2" onClick={handleUpdateImg}>
+                        <Button onClick={() => document.getElementById("avatarInput").click()} variant="outline-secondary" className="mb-2" >
                           Chọn Ảnh
-                        </Button>
+                          </Button>
+                          <input
+                              type="file"
+                              id="avatarInput"
+                              accept="image/jpeg,image/png"
+                              style={{ display: "none" }}
+                              onChange={(e) => handleUpdateImg(e.target.files[0])}
+                            />
                         <div className="text-muted small">
                           <p className="mb-0">Dung lượng file tối đa 1 MB</p>
                           <p className="mb-0">Định dạng: .JPEG, .PNG</p>
@@ -698,53 +754,75 @@ useEffect(() => {
 
                   {/* Voucher list */}
                 <div className="row g-4">
-                  {filteredCoupons.map((v) => (
-                    Number(v.description) === 0 && (
-                      <motion.div
-                        key={v.id}
-                        className="col-12 col-md-6"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ duration: 0.4 }}
-                      >
-                        <div
-                          className="voucher-card d-flex p-3 position-relative border rounded shadow-sm"
-                          style={{ background: "#fff", cursor: "pointer" }}
+                  {filteredCoupons.map((v) => {
+                    // Kiểm tra điều kiện coupon
+                    if (
+                      Number(v.description) === 0 &&
+                      v.status === "active" &&
+                      v.quantity > 0 &&
+                      new Date(v.end_date) >= new Date()
+                    ) {
+                      return (
+                        <motion.div
+                          key={v.id}
+                          className="col-12 col-md-6"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 20 }}
+                          transition={{ duration: 0.4 }}
                         >
-                          {/* Logo + code */}
-                          <div className="d-flex flex-column justify-content-center align-items-center me-3">
-                            <RiCoupon2Line size={36} style={{color:'#ff9900'}} />
-                            <span className="fw-bold mt-1">{v.code}</span>
-                          </div>
-
-                          {/* Thông tin voucher */}
-                          <div className="flex-grow-1 d-flex flex-column justify-content-between">
-                            <div>
-                              <h5 className="mb-1">
-                                Giảm {v.discount_type === 'percent' 
-                                  ? `${Number(v.discount_value)}%` 
-                                  : `${Number(v.discount_value).toLocaleString("vi-VN")} VND`}
-                              </h5>
-                              <div className="d-flex justify-content-between text-muted small">
-                                <span>Đơn Tối Thiểu: {Number(v.min_order_total).toLocaleString("vi-VN")} VND</span>
-                                <span>HSD: {new Date(v.end_date).toLocaleDateString()}</span>
-                              </div>
-                              <span style={{background:'#ff9900'}} className="badge bg-primary text-white mt-1">Áp dụng cho hóa đơn</span>
+                          <div
+                            className="voucher-card d-flex p-3 position-relative border rounded shadow-sm"
+                            style={{ background: "#fff", cursor: "pointer" }}
+                          >
+                            {/* Logo + code */}
+                            <div className="d-flex flex-column justify-content-center align-items-center me-3">
+                              <RiCoupon2Line size={36} style={{ color: "#ff9900" }} />
+                              <span className="fw-bold mt-1">{v.code}</span>
                             </div>
-                          </div>
 
-                          {/* Nút dùng ngay */}
-                          <div className="d-flex flex-column justify-content-center ms-3 voucher-actions">
-                            <button onClick={handleReBuy} className="btn-use">Dùng Ngay</button>
-                          </div>
+                            {/* Thông tin voucher */}
+                            <div className="flex-grow-1 d-flex flex-column justify-content-between">
+                              <div>
+                                <h5 className="mb-1">
+                                  Giảm{" "}
+                                  {v.discount_type === "percent"
+                                    ? `${Number(v.discount_value)}%`
+                                    : `${Number(v.discount_value).toLocaleString("vi-VN")} VND`}
+                                </h5>
+                                <div className="d-flex justify-content-between text-muted small">
+                                  <span>
+                                    Đơn Tối Thiểu:{" "}
+                                    {Number(v.min_order_total).toLocaleString("vi-VN")} VND
+                                  </span>
+                                  <span>HSD: {new Date(v.end_date).toLocaleDateString()}</span>
+                                </div>
+                                <span
+                                  style={{ background: "#ff9900" }}
+                                  className="badge bg-primary text-white mt-1"
+                                >
+                                  Áp dụng cho hóa đơn
+                                </span>
+                              </div>
+                            </div>
 
-                          {/* Tag Mới */}
-                          <span className="position-absolute top-0 end-0 badge bg-danger">Mới!</span>
-                        </div>
-                      </motion.div>
-                    )
-                  ))}
+                            {/* Nút dùng ngay */}
+                            <div className="d-flex flex-column justify-content-center ms-3 voucher-actions">
+                              <button onClick={handleReBuy} className="btn-use">
+                                Dùng Ngay
+                              </button>
+                            </div>
+
+                            {/* Tag Mới */}
+                            <span className="position-absolute top-0 end-0 badge bg-danger">
+                              Mới!
+                            </span>
+                          </div>
+                        </motion.div>
+                      );
+                    }
+                    return null; // Nếu không thỏa điều kiện
+                  })}
                 </div>
 
 
