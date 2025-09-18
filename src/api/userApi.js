@@ -1,16 +1,17 @@
+// src/api/userApi.js
 import axios from "axios";
 import API_URL from "./config";
 
 // Hàm gọi API đăng nhập
 export const loginUser = async (email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/auth/user/login`, {
+    const { data } = await axios.post(`${API_URL}/auth/user/login`, {
       email,
       password,
     });
-
-    return response.data; // { token, user }
+    return data; // { token, user }
   } catch (error) {
+    console.error("Lỗi login:", error);
     throw error.response?.data?.message || "Đăng nhập thất bại";
   }
 };
@@ -26,76 +27,78 @@ const getHeaders = () => ({
 const userApi = {
   // Lấy thông tin người dùng
   getProfile: async () => {
-    const res = await axios.get(`${API_URL}/users/me`, {
+    const { data } = await axios.get(`${API_URL}/users/me`, {
       headers: getHeaders(),
     });
-    return res.data;
+    return data;
   },
 
   // Lịch sử mua hàng
   getOrderHistory: async () => {
-    const res = await axios.get(`${API_URL}/users/orders/history`, {
+    const { data } = await axios.get(`${API_URL}/users/orders/history`, {
       headers: getHeaders(),
     });
-    return res.data;
+    return data;
   },
 
   // Đơn hàng đang xử lý
   getPendingOrders: async () => {
-    const res = await axios.get(`${API_URL}/users/orders/pending`, {
+    const { data } = await axios.get(`${API_URL}/users/orders/pending`, {
       headers: getHeaders(),
     });
-    return res.data;
+    return data;
   },
 
   // Cập nhật thông tin cá nhân
-  updateProfile: async (data) => {
-    const res = await axios.put(`${API_URL}/users/update`, data, {
+  updateProfile: async (payload) => {
+    const { data } = await axios.put(`${API_URL}/users/update`, payload, {
       headers: getHeaders(),
     });
-    return res.data;
+    return data;
   },
 
   // Đổi mật khẩu
-  changePassword: async (data) => {
-    const res = await axios.put(`${API_URL}/users/change-password`, data, {
+  changePassword: async (payload) => {
+    const { data } = await axios.put(`${API_URL}/users/change-password`, payload, {
       headers: getHeaders(),
     });
-
-    return res.data;
+    return data;
   },
 
   // Lấy tất cả voucher
   allVoucher: async () => {
-    const res = await axios.get(`${API_URL}/coupons`, {
+    const { data } = await axios.get(`${API_URL}/coupons`, {
       headers: getHeaders(),
     });
-    return res.data;
+    return data;
   },
 
   // 🔔 Lấy thông báo khách hàng
   getNotifications: async (userId) => {
-    const res = await axios.get(`${API_URL}/users/${userId}`, {
+    const { data } = await axios.get(`${API_URL}/users/${userId}/notifications`, {
       headers: getHeaders(),
     });
-    return res.data; // { success, notifications }
+    return data; // { success, notifications }
   },
 
   // 🔔 Đánh dấu 1 thông báo đã đọc
-markNotificationAsRead: async (notifId) => {
-  const res = await axios.put(`${API_URL}/users/${notifId}/read`, {}, {
-    headers: getHeaders(),
-  });
-  return res.data;
-},
-
+  markNotificationAsRead: async (notifId) => {
+    const { data } = await axios.put(
+      `${API_URL}/users/notifications/${notifId}/read`,
+      {},
+      { headers: getHeaders() }
+    );
+    return data;
+  },
 
   // 🔔 Đánh dấu tất cả thông báo đã đọc
   markAllNotificationsAsRead: async (userId) => {
-    const res = await axios.put(`${API_URL}/users/user/${userId}/read-all`, {}, {
-      headers: getHeaders(),
-    });
-    return res.data;
+    const { data } = await axios.put(
+      `${API_URL}/users/${userId}/notifications/read-all`,
+      {},
+      { headers: getHeaders() }
+    );
+    return data;
   },
 };
 

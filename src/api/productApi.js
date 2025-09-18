@@ -1,65 +1,90 @@
-import axios from "axios";
-import API_URL from "./config";
+// src/api/productApi.js
+import api from "./api"; // axios instance có sẵn baseURL + headers
 
 const productApi = {
   // ----------------- REVIEWS -----------------
 
   // Lấy danh sách đánh giá theo sản phẩm
-  getReviews: async (productId, filters = {}) => {
-  const params = {};
-  if (filters.rating) params.rating = filters.rating;
-  if (filters.hasImage) params.hasImage = true;
-  if (filters.hasVideo) params.hasVideo = true;
-  if (filters.page) params.page = filters.page;
-  if (filters.limit) params.limit = filters.limit;
+  async getReviews(productId, filters = {}) {
+    try {
+      const params = {};
+      if (filters.rating) params.rating = filters.rating;
+      if (filters.hasImage) params.hasImage = true;
+      if (filters.hasVideo) params.hasVideo = true;
+      if (filters.page) params.page = filters.page;
+      if (filters.limit) params.limit = filters.limit;
 
-  const res = await axios.get(`${API_URL}/reviews/${productId}`, { params });
-  return res.data; // chỉ trả data, không trả cả axios response
-},
-
+      const { data } = await api.get(`/reviews/${productId}`, { params });
+      return data;
+    } catch (err) {
+      console.error("Lỗi getReviews:", err);
+      return { reviews: [], total: 0 }; // fallback an toàn
+    }
+  },
 
   // Upload ảnh đánh giá (trả về danh sách file path string)
-  uploadReviewImages: async (files) => {
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append("images", files[i]);
+  async uploadReviewImages(files) {
+    try {
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append("images", files[i]);
+      }
+
+      const { data } = await api.post("/reviews/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data.files || [];
+    } catch (err) {
+      console.error("Lỗi uploadReviewImages:", err);
+      return [];
     }
-    const res = await axios.post(`${API_URL}/reviews/upload`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return res.data.files; // => array of string
   },
 
   // Gửi đánh giá (có thể kèm ảnh/video/variant)
-  createReview: async (data) => {
-    const payload = {
-      product_id: String(data.product_id),
-      user_id: String(data.user_id),
-      rating: String(data.rating),
-      content: data.content || "",
-      images: data.images ? JSON.stringify(data.images) : "[]",
-      videos: data.videos ? JSON.stringify(data.videos) : "[]",
-      variant: data.variant ? String(data.variant) : null,
-    };
+  async createReview(review) {
+    try {
+      const payload = {
+        product_id: review.product_id,
+        user_id: review.user_id,
+        rating: review.rating,
+        content: review.content || "",
+        images: review.images ? JSON.stringify(review.images) : "[]",
+        videos: review.videos ? JSON.stringify(review.videos) : "[]",
+        variant: review.variant || null,
+      };
 
-    const res = await axios.post(`${API_URL}/reviews`, payload, {
-      headers: { "Content-Type": "application/json" },
-    });
-    return res.data;
+      const { data } = await api.post("/reviews", payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+      return data;
+    } catch (err) {
+      console.error("Lỗi createReview:", err);
+      return null;
+    }
   },
 
   // Đánh dấu review hữu ích
-  likeReview: async (reviewId) => {
-    const res = await axios.put(`${API_URL}/reviews/${reviewId}/helpful`);
-    return res.data;
+  async likeReview(reviewId) {
+    try {
+      const { data } = await api.put(`/reviews/${reviewId}/helpful`);
+      return data;
+    } catch (err) {
+      console.error("Lỗi likeReview:", err);
+      return null;
+    }
   },
 
   // Shop phản hồi review
-  replyReview: async (reviewId, reply_content) => {
-    const res = await axios.post(`${API_URL}/reviews/${reviewId}/reply`, {
-      reply_content: String(reply_content || ""),
-    });
-    return res.data;
+  async replyReview(reviewId, reply_content) {
+    try {
+      const { data } = await api.post(`/reviews/${reviewId}/reply`, {
+        reply_content: reply_content || "",
+      });
+      return data;
+    } catch (err) {
+      console.error("Lỗi replyReview:", err);
+      return null;
+    }
   },
 };
 

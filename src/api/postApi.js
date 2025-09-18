@@ -1,30 +1,38 @@
-import axios from 'axios';
-
-import API_URL from "./config"; // sửa nếu backend bạn dùng prefix khác
+// src/api/postApi.js
+import api from "./api"; // dùng chung axios instance
 
 const postApi = {
-  getAll: async () => {
+  // Lấy danh sách bài viết
+  async getAll() {
     try {
-      const res = await axios.get(`${API_URL}/posts`);
-      return res.data;
+      const { data } = await api.get("/posts");
+      return data; // giả sử backend trả { posts: [...], totalPosts, totalPages }
     } catch (err) {
-      console.error('Lỗi lấy danh sách bài viết:', err);
+      console.error("Lỗi lấy danh sách bài viết:", err);
       return { posts: [], totalPosts: 0, totalPages: 0 };
     }
   },
 
-  getById: async (id) => {
+  // Lấy bài viết theo id
+  async getById(id) {
     try {
-      const res = await axios.get(`${API_URL}/${id}`);
-      return res.data;
+      const { data } = await api.get(`/posts/${id}`);
+      return data; // giả sử backend trả { post: {...} }
     } catch (err) {
       console.error(`Lỗi lấy bài viết id=${id}:`, err);
       return null;
     }
   },
-  getBySlug: async (slug) => {
-    const res = await axios.get(`${API_URL}/posts/slug/${slug}`);
-    return res.data.post;
+
+  // Lấy bài viết theo slug
+  async getBySlug(slug) {
+    try {
+      const { data } = await api.get(`/posts/slug/${slug}`);
+      return data.post; 
+    } catch (err) {
+      console.error(`Lỗi lấy bài viết slug=${slug}:`, err);
+      return null;
+    }
   },
 };
 

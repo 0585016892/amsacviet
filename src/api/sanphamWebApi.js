@@ -1,39 +1,36 @@
-import API_URL from "./config";
+// src/api/productService.js
+import api from "./api"; // axios instance (đã set baseURL = API_URL)
+
 export const getCategoryData = async (slug) => {
   try {
-    const response = await fetch(`${API_URL}/products/category/${slug}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch category data");
-    }
-    return await response.json();
+    const { data } = await api.get(`/products/category/${slug}`);
+    return data;
   } catch (error) {
     console.error("Error fetching category data:", error);
-    throw error;
+    return { products: [] }; // fallback an toàn
   }
 };
-// --- Thêm API này để lấy 1 sản phẩm theo slug ---
+
+// --- Lấy 1 sản phẩm theo slug ---
 export const getProductBySlug = async (slug) => {
   try {
-    const response = await fetch(`${API_URL}/products/products/${slug}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch product by slug");
-    }
-    return await response.json();
+    const { data } = await api.get(`/products/products/${slug}`);
+    return data;
   } catch (error) {
-    throw error;
+    console.error("Error fetching product by slug:", error);
+    return null;
   }
 };
-// --- API tìm kiếm sản phẩm theo từ khóa ---
+
+// --- Tìm kiếm sản phẩm theo từ khóa ---
 export const searchProducts = async (keyword) => {
   try {
-    const response = await fetch(
-      `${API_URL}/products/search?keyword=${encodeURIComponent(keyword)}`
-    );
-    if (!response.ok) {
-      throw new Error("Failed to search products");
-    }
-    return await response.json();
+    const { data } = await api.get("/products/search", {
+      params: { keyword },
+    });
+    return data;
   } catch (error) {
-    throw error;
+    console.error("Error searching products:", error);
+    return { products: [] };
   }
 };

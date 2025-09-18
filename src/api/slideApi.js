@@ -1,13 +1,14 @@
-import axios from "axios";
-import API_URL from "./config";
+// src/api/slideApi.js
+import api from "./api"; // axios instance có sẵn baseURL, headers
 
 export const getSlidesByArea = async (display_area) => {
   try {
-    const response = await axios.get(`${API_URL}/slides/show`, {
+    const { data } = await api.get("/slides/show", {
       params: { display_area },
     });
-    return response.data.slides;
+    return data.slides || []; // fallback mảng rỗng để UI không crash
   } catch (error) {
-    throw error; // 👉 QUAN TRỌNG: quăng lỗi lên để component xử lý
+    console.error("Lỗi khi lấy slides:", error);
+    throw error; // quăng lỗi lên để component tự xử lý
   }
 };

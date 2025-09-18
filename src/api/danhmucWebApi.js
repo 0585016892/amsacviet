@@ -1,7 +1,5 @@
 // api/categoryService.js
-import axios from "axios";
-
-import API_URL from "./config";
+import { api } from "./config"; // dùng instance thay vì axios
 
 const categoryService = {
   /**
@@ -10,19 +8,22 @@ const categoryService = {
    */
   async getCategories() {
     try {
-      const { data } = await axios.get(`${API_URL}/categories/danhmucWeb`);
+      const { data } = await api.get("/categories/danhmucWeb");
       return data;
     } catch (error) {
-     
       throw error;
     }
   },
+
+  /**
+   * Lấy danh sách bộ sưu tập (collection).
+   * @returns {Promise} - Promise chứa dữ liệu collection.
+   */
   async getCollection() {
     try {
-      const { data } = await axios.get(`${API_URL}/collections`);
+      const { data } = await api.get("/collections");
       return data;
     } catch (error) {
-     
       throw error;
     }
   },
