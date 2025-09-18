@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, Button, Spinner, Form, Pagination} from "react-bootstrap";
 import { Link } from "react-router-dom";
+import productApi from "../api/productApi";
 const API_URL = process.env.REACT_APP_API_URL;
 const WEB_URL = process.env.REACT_APP_WEB_URL;
 function HomeHero() {
@@ -17,18 +18,20 @@ function HomeHero() {
   const productsPerPage = 8;
 
   useEffect(() => {
-    fetch(`${API_URL}/products`)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("API data:", data);
-        setProducts(Array.isArray(data) ? data : data.products || []); // ✅ fix
+    const fetchData = async () => {
+      try {
+        const data = await productApi.getProducts();
+        setProducts(data);
+      } catch (err) {
+        console.error("Failed to load products:", err);
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching products:", err);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
+
 
   // --- Filter logic ---
   const filteredProducts = products.filter((p) => {

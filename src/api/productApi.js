@@ -86,6 +86,16 @@ const productApi = {
       return null;
     }
   },
+   getProducts: async () => {
+    try {
+      const res = await api.get("/products");
+      // Trường hợp API trả về { products: [...] } hoặc [] đều xử lý được
+      return Array.isArray(res.data) ? res.data : res.data.products || [];
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      throw err;
+    }
+  },
 };
 
 export default productApi;
