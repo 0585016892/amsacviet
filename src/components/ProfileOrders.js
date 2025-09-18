@@ -13,7 +13,7 @@ import { socket } from "../api/socket";
   import noti from '../img/noti.png';
 import { useNavigate } from "react-router-dom";
   import axios from "axios";
-
+import { api } from "../api/config"; 
   const statusTabs = [
     { key: "all", label: "Tất cả" },
     { key: "pending", label: "Chờ xác nhận" },
@@ -194,11 +194,11 @@ useEffect(() => {
         formData.append("image", file);
 
         try {
-          const res = await axios.post(
-            `${process.env.REACT_APP_WEB_URL}/api/customers/add-image`,
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
-          );
+            const res = await api.post(
+              `/api/customers/add-image`,
+              formData,
+              { headers: { "Content-Type": "multipart/form-data" } }
+            );
 
           // Cập nhật avatar trong state user nếu cần
           if (res.data && res.data.data?.image) {
