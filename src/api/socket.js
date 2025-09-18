@@ -2,9 +2,8 @@ import { io } from "socket.io-client";
 
 export const socket = io(process.env.REACT_APP_WEB_URL, {
   withCredentials: true,
+  transports: ["websocket"], // chỉ dùng websocket, bỏ polling
   extraHeaders: {
-    "Accept": "application/json",
-    "ngrok-skip-browser-warning": "true", // tránh warning
+    "ngrok-skip-browser-warning": "true",
   },
-  transports: ["websocket"], // đảm bảo không bị polling
 });

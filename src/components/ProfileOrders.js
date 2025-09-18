@@ -8,7 +8,7 @@
   import { Loading } from "../components";
   import { useAuth } from "../context/AuthContext";
   import { motion, AnimatePresence } from "framer-motion";
-  import { io } from "socket.io-client";
+import { socket } from "../socket";
   import { showSuccessToast ,showErrorToast} from "../utils/toastUtils";
   import noti from '../img/noti.png';
 import { useNavigate } from "react-router-dom";
@@ -25,7 +25,6 @@ import { useNavigate } from "react-router-dom";
   const ProfileOrders = () => {
     const URL = process.env.REACT_APP_WEB_URL; 
     const navigate = useNavigate();
-  const socket = io(URL);
 
     const { logout } = useAuth();
       const [user, setUser] = useState(null);
