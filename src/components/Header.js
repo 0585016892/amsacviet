@@ -37,7 +37,7 @@ const Header = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-console.log()
+console.log(user)
   // Lắng nghe sự thay đổi của location (URL)
   useEffect(() => {
     // Khi URL thay đổi, đóng menu
