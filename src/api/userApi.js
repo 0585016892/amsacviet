@@ -1,5 +1,6 @@
 import axios from "axios";
-import API_URL from "./config";
+import { API_URL, api } from "./config";
+
 
 // Hàm gọi API đăng nhập
 export const loginUser = async (email, password) => {

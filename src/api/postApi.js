@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-import API_URL from "./config"; // sửa nếu backend bạn dùng prefix khác
+import { API_URL, api } from "./config";
+ // sửa nếu backend bạn dùng prefix khác
 
 const postApi = {
   getAll: async () => {

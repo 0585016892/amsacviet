@@ -14,6 +14,7 @@
 // src/api/config.js
 // src/api/config.js
 // config.js
+// config.js
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -22,9 +23,9 @@ const api = axios.create({
   baseURL: API_URL,
   headers: {
     "ngrok-skip-browser-warning": "true",
-    "Accept": "application/json"
+    Accept: "application/json",
   },
 });
 
-export default API_URL; // export mặc định
-export { api };
+// Xuất ra cả 2
+export { API_URL, api };
