@@ -25,7 +25,7 @@ import { useNavigate } from "react-router-dom";
   const ProfileOrders = () => {
     const URL = process.env.REACT_APP_WEB_URL; 
     const navigate = useNavigate();
-  const socket = io(`${URL}`);
+  const socket = io(URL);
 
     const { logout } = useAuth();
       const [user, setUser] = useState(null);
