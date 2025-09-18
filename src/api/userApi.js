@@ -1,7 +1,6 @@
 // src/api/userApi.js
 import axios from "axios";
-import API_URL from "./config";
-
+import API_URL from "./api";
 // Hàm gọi API đăng nhập
 export const loginUser = async (email, password) => {
   try {
