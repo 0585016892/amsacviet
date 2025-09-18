@@ -1,5 +1,5 @@
 // src/api/slideApi.js
-import api from "./api"; // axios instance có sẵn baseURL, headers
+import { api } from "./config";// axios instance có sẵn baseURL, headers
 
 export const getSlidesByArea = async (display_area) => {
   try {

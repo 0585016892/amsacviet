@@ -1,5 +1,5 @@
 // src/api/orderApi.js
-import api from "./api";
+import { api } from "./config";
 
 const orderApi = {
   // Lấy chi tiết đơn hàng theo id

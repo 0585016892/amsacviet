@@ -1,5 +1,5 @@
 // src/api/postApi.js
-import api from "./api"; // dùng chung axios instance
+import { api } from "./config"; // dùng chung axios instance
 
 const postApi = {
   // Lấy danh sách bài viết

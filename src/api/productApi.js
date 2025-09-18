@@ -1,5 +1,5 @@
 // src/api/productApi.js
-import api from "./api"; // axios instance có sẵn baseURL + headers
+import { api } from "./config"; // axios instance có sẵn baseURL + headers
 
 const productApi = {
   // ----------------- REVIEWS -----------------

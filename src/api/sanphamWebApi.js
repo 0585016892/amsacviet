@@ -1,5 +1,5 @@
 // src/api/productService.js
-import api from "./api"; // axios instance (đã set baseURL = API_URL)
+import { api } from "./config"; // axios instance (đã set baseURL = API_URL)
 
 export const getCategoryData = async (slug) => {
   try {
