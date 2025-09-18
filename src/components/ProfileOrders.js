@@ -73,11 +73,12 @@ import { useNavigate } from "react-router-dom";
             address: userData.address,
           });
 
-          const data = await userApi.getOrderHistory();
-          setOrders(data);
-
-          const dataVouver = await userApi.allVoucher();
-          setAllVoucher(dataVouver || []);
+          const [ordersData, vouchersData] = await Promise.all([
+            userApi.getOrderHistory(),
+            userApi.allVoucher()
+          ]);
+          setOrders(ordersData);
+          setAllVoucher(vouchersData || []);
         }catch (error) {
         } finally {
           setLoading(false);
@@ -298,7 +299,7 @@ console.log(user);
             >
                     <div className="d-flex align-items-center pb-3 border-bottom mb-3">
                 <div className="bg-light text-secondary rounded-circle d-flex justify-content-center align-items-center" style={{ width: '50px', height: '50px' }}>
-                  {user.images ? (
+                  {user?.images ? (
                             <img
                               src={`${URL}/uploads/customers/${user.images}`}
                               alt="avatar"
@@ -512,7 +513,7 @@ console.log(user);
                   {/* Nội dung đơn hàng với scroll */}
                   <div className="mt-3" style={{ maxHeight: "767px", overflowY: "auto" }}>
                     <AnimatePresence>
-                    {filterOrders(activeTab).length === 0 ? (
+                    {Array.isArray(filterOrders(activeTab)) && filterOrders(activeTab).length === 0 ? (
                       <motion.p
                         key="empty"
                         initial={{ opacity: 0 }}
@@ -530,7 +531,8 @@ console.log(user);
                               exit={{ opacity: 0, y: -20 }}
                               transition={{ duration: 0.4 }}
                             >
-                        {filterOrders(activeTab).map(order => (
+                        {Array.isArray(filterOrders(activeTab)) &&
+                        filterOrders(activeTab).map(order => (
                           <Card className="mb-3" key={order.id}>
                             <Card.Body>
                               {/* Nội dung đơn hàng */}
