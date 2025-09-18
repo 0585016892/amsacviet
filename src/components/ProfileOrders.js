@@ -8,7 +8,7 @@
   import { Loading } from "../components";
   import { useAuth } from "../context/AuthContext";
   import { motion, AnimatePresence } from "framer-motion";
-import { socket } from "../socket";
+import { socket } from "../api/socket";
   import { showSuccessToast ,showErrorToast} from "../utils/toastUtils";
   import noti from '../img/noti.png';
 import { useNavigate } from "react-router-dom";
