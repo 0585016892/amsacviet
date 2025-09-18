@@ -13,7 +13,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import MOMO from '../img/momo.png'
 import COD from '../img/cod.webp'
-
+import couponApi from "../api/couponApi";
 
 const Order = () => {
   const { user } = useAuth();
@@ -133,17 +133,17 @@ const Order = () => {
   // coupon
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [coupons, setCoupons] = useState([]);
-  useEffect(() => {
-    axios
-      .get(
-        `${URL_API}/coupons?description=0`
-      )
-      .then((res) => {
-        const filteredCoupons = res.data.coupons.filter(
-          (coupon) => coupon.description === "0"
-        );
-        setCoupons(filteredCoupons);
-      });
+ useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const data = await couponApi.getZeroDescriptionCoupons();
+        setCoupons(data);
+      } catch (err) {
+        console.error("Failed to load coupons:", err);
+      }
+    };
+
+    fetchCoupons();
   }, []);
   useEffect(() => {
     if (selectedCoupon) {
