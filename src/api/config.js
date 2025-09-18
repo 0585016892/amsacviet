@@ -29,4 +29,4 @@ api.get("/products")
   .then((res) => console.log("API data:", res.data))
   .catch((err) => console.error("API error:", err));
 
-export { api, API_URL };
+export default API_URL;
