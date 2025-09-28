@@ -86,7 +86,6 @@ function ProductReviews({ productId, user }) {
     await productApi.likeReview(reviewId);
     loadReviews(pagination.page);
   };
-console.log(reviews);
 
   return (
     <div className="mt-5">

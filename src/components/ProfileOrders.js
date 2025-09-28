@@ -8,12 +8,12 @@
   import { Loading } from "../components";
   import { useAuth } from "../context/AuthContext";
   import { motion, AnimatePresence } from "framer-motion";
-import { socket } from "../api/socket";
+  import { io } from "socket.io-client";
   import { showSuccessToast ,showErrorToast} from "../utils/toastUtils";
   import noti from '../img/noti.png';
 import { useNavigate } from "react-router-dom";
   import axios from "axios";
-import { api } from "../api/config"; 
+
   const statusTabs = [
     { key: "all", label: "Tất cả" },
     { key: "pending", label: "Chờ xác nhận" },
@@ -25,6 +25,7 @@ import { api } from "../api/config";
   const ProfileOrders = () => {
     const URL = process.env.REACT_APP_WEB_URL; 
     const navigate = useNavigate();
+  const socket = io(URL);
 
     const { logout } = useAuth();
       const [user, setUser] = useState(null);
@@ -194,11 +195,11 @@ useEffect(() => {
         formData.append("image", file);
 
         try {
-            const res = await api.post(
-              `/api/customers/add-image`,
-              formData,
-              { headers: { "Content-Type": "multipart/form-data" } }
-            );
+          const res = await axios.post(
+            `${process.env.REACT_APP_WEB_URL}/api/customers/add-image`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
 
           // Cập nhật avatar trong state user nếu cần
           if (res.data && res.data.data?.image) {
@@ -314,7 +315,7 @@ console.log(user);
                           )}
                 </div>
                 <div className="ms-3">
-                  <div className="fw-bold fs-6">{user.full_name}</div>
+                  <div className="fw-bold fs-6">{user?.full_name}</div>
                 </div>
               </div>
               </motion.h3>
@@ -604,7 +605,7 @@ console.log(user);
                   </div>
                 </div>
               )}
-
+  
             {activeSection === "profile" && (
               <Container className="my-5">
                 <motion.div
@@ -626,11 +627,11 @@ console.log(user);
                         transition={{ staggerChildren: 0.2 }}
                       >
                         {[
-                          { label: "Tên đăng nhập", value: user.full_name, readOnly: true, type: "text", note: "Tên Đăng nhập chỉ có thể thay đổi một lần." },
-                          { label: "Email", value: user.email },
-                          { label: "Số điện thoại", value: user.phone },
-                          { label: "Địa chỉ", value: user.address },
-                          { label: "Ngày sinh", value: "**/**/2000", isDob: true }
+                            { label: "Tên đăng nhập", value: user?.full_name, readOnly: true, type: "text", note: "Tên Đăng nhập chỉ có thể thay đổi một lần." },
+                            { label: "Email", value: user?.email },
+                            { label: "Số điện thoại", value: user?.phone },
+                            { label: "Địa chỉ", value: user?.address },
+                            { label: "Ngày sinh", value: "**/**/2000", isDob: true }
                         ].map((field, idx) => (
                           <motion.div
                             key={idx}
@@ -695,9 +696,9 @@ console.log(user);
                       >
                         <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
                           style={{ width: '100px', height: '100px' }}>
-                          {user.images ? (
+                          {user?.images ? (
                             <img
-                              src={`${URL}/uploads/customers/${user.images}`}
+                              src={`${URL}/uploads/customers/${user?.images}`}
                               alt="avatar"
                               style={{
                                 width: "100%",
