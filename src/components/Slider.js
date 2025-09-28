@@ -19,7 +19,6 @@ const Slider = () => {
         setSlides(result);
       } catch (error) {
         setHasError(true);
-        navigate("/server-down");
       }
     };
 
