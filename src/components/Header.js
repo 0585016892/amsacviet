@@ -21,23 +21,15 @@ const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  useEffect(() => {
-    const handleScroll = () => {
-      const offset = window.scrollY;
-      if (offset > 0) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
+useEffect(() => {
+  const handleScroll = () => {
+    console.log("ScrollY:", window.scrollY);
+    setScrolled(window.scrollY > 0);
+  };
 
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-console.log(user)
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
   // Lắng nghe sự thay đổi của location (URL)
   useEffect(() => {
     // Khi URL thay đổi, đóng menu

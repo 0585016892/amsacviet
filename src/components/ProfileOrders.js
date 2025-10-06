@@ -181,6 +181,8 @@ useEffect(() => {
       return orders;
     };
     // Ảnh đại diện
+    console.log(orders);
+    
     const handleUpdateImg = async (file) => {
         if (!file) return;
 
@@ -283,7 +285,6 @@ useEffect(() => {
       </motion.div>
     );
     }
-console.log(user);
 
     return (
       <Container className="profile" style={{ height: "800px" }}>

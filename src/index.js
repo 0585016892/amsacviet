@@ -10,6 +10,7 @@ import "./assets/category.css";
 import "./assets/Reponsive.css";
 import "./assets/Profile.css";
 import "./assets/GuitarViewer.css";
+import "./assets/Loading.css";
 import { BrowserRouter } from "react-router-dom"; // Chỉ cần BrowserRouter ở đây
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./redux"; // Đảm bảo import đúng

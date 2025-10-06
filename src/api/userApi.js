@@ -25,6 +25,8 @@ const userApi = {
 
   getOrderHistory: async () => {
     const res = await api.get(`/users/orders/history`, { headers: getHeaders() });
+    console.log(res);
+    
     return res.data;
   },
 

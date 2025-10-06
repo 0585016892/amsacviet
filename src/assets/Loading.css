@@ -1,0 +1,62 @@
+.piano-mini-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  text-align: center;
+}
+
+.piano-keys {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+/* Phím trắng */
+.mini-key.white {
+  width: 14px;
+  height: 35px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  animation: pressMini 1.2s infinite ease-in-out;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Phím đen */
+.mini-key.black {
+  width: 10px;
+  height: 22px;
+  background: #222;
+  border-radius: 2px;
+  position: relative;
+  top: -10px;
+  z-index: 2;
+  animation: pressMini 1.2s infinite ease-in-out;
+}
+
+@keyframes pressMini {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(4px);
+    opacity: 1;
+  }
+}
+
+.piano-loading-text {
+  font-size: 0.95rem;
+  color: #444;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  animation: fadeMini 1.5s infinite ease-in-out;
+}
+
+@keyframes fadeMini {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}

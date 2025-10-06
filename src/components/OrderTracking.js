@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card } from 'react-bootstrap';
+import { Container, Row, Col, Card, Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {
   FaBoxOpen,
@@ -47,13 +47,22 @@ useEffect(() => {
 }, [id, order]);
 
   if (loading) {
-    return <p className="text-center mt-5">Đang tải thông tin đơn hàng...</p>;
+    return <div
+            style={{
+              position: "absolute",
+              top: "40%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 2,
+            }}
+          >
+            <Spinner animation="border" variant="warning" />
+          </div>;
   }
 
   if (!order) {
     return <p className="text-center mt-5 text-danger">Không tìm thấy đơn hàng!</p>;
   }
-  console.log(order);
   
 
   return (
@@ -67,7 +76,7 @@ useEffect(() => {
       {/* Header và nút */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div className="d-flex align-items-center">
-          <span className="text-secondary me-2" style={{ cursor:'pointer'}} onClick={() => navigate('/')}>← TRỞ LẠI</span>
+          <span className="text-secondary me-2" style={{ cursor:'pointer'}} onClick={() => navigate(-1)}>← TRỞ LẠI</span>
           
         </div>
         <div className="d-flex">
@@ -179,15 +188,24 @@ useEffect(() => {
                               <div className="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
                                 <div className="d-flex align-items-center">
                                   {Number(order.shipping) !== 0 && (
-                                    <div className="text-warning small d-flex align-items-center">
-                                      <FaInfoCircle className="me-2" />
-                                      Vui lòng thanh toán  
-                                      <span className="text-danger ms-1">
-                                        {Number(order.final_total).toLocaleString("vi-VN")} 
-                                      </span>  
-                                      khi nhận hàng.
-                                    </div>
-                                  )}
+                                      <>
+                                        {order.payment_method === "MOMO" ? (
+                                          <div className="text-success small d-flex align-items-center">
+                                            <FaInfoCircle className="me-2" />
+                                            Bạn đã chọn thanh toán qua MoMo.
+                                          </div>
+                                        ) : (
+                                          <div className="text-warning small d-flex align-items-center">
+                                            <FaInfoCircle className="me-2" />
+                                            Vui lòng thanh toán
+                                            <span className="text-danger ms-1">
+                                              {Number(order.final_total).toLocaleString("vi-VN")} VND 
+                                            </span>
+                                            {" "} khi nhận hàng.
+                                          </div>
+                                        )}
+                                      </>
+                                    )}
                                 </div>
                                 <div className="text-secondary small">
                                   <FaInfoCircle className="me-1" />

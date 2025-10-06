@@ -32,7 +32,7 @@ const Public = () => {
       </div>
 
       {/* Content chính */}
-      <div className="flex-grow-1 overflow-auto">
+      <div className="flex-grow-1 overflow-auto ">
         <Outlet />
       </div>
 
