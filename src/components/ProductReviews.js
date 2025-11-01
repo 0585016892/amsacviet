@@ -19,12 +19,10 @@ function ProductReviews({ productId, user }) {
     // Lắng nghe socket khi review được duyệt
   
     socket.on("reviewApproved", (data) => {
-      console.log("Review đã được duyệt:", data);
       // gọi lại API để cập nhật danh sách
       loadReviews(pagination.page);
     });
       socket.on("reviewDeleted", (data) => {
-      console.log("Review đã được duyệt:", data);
       // gọi lại API để cập nhật danh sách
       loadReviews(pagination.page);
     });
@@ -168,71 +166,92 @@ function ProductReviews({ productId, user }) {
         <p className="text-muted">Vui lòng đăng nhập để viết đánh giá.</p>
       )}
 
-      {/* Danh sách đánh giá */}
+     {/* Danh sách đánh giá */}
       {reviews.length === 0 ? (
         <p className="text-muted">Chưa có đánh giá nào.</p>
-      ) : (
-     <>
-    {reviews
-      .filter(r => r.is_verified) // Chỉ lấy đánh giá đã duyệt
-      .map((r) => (
-        <Card className="shadow-sm border-0 rounded-3 p-3">
-    <h5 className="fw-bold mb-3">Đánh giá từ khách hàng</h5>
-    {reviews
-      .filter(r => r.is_verified) // Chỉ lấy đánh giá đã duyệt
-      .map((r) => (
-        <Card key={r.id} className="mb-3 shadow-sm border-0 rounded-3 hover-shadow p-2">
-          {/* Header */}
-          <div className="d-flex justify-content-between align-items-center mb-1">
-            <div>
-              <strong>{r.full_name}</strong>
-              <div className="d-flex align-items-center mt-1">
-                {[1,2,3,4,5].map(star =>
-                  star <= r.rating ? <FaStar key={star} color="#ffc107" /> : <FaRegStar key={star} color="#ccc" />
-                )}
-                <span className="ms-2 text-muted small">{r.rating} sao</span>
-              </div>
-            </div>
-            <small className="text-muted">{new Date(r.created_at).toLocaleDateString("vi-VN")}</small>
-          </div>
-
-          {/* Nội dung */}
-          <Card.Text style={{ whiteSpace: "pre-line", marginTop: "5px" }}>{r.content}</Card.Text>
-
-          {/* Hình ảnh review */}
-          {Array.isArray(r.images) && r.images.length > 0 && (
-            <Row className="mb-2 g-2">
-              {r.images.map((img, i) => (
-                <Col xs={4} sm={3} md={2} key={i}>
-                  <Image
-                    src={`${URL}/uploads/reviews/${img}`}
-                    rounded
-                    thumbnail
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                </Col>
-              ))}
-            </Row>
-          )}
-
-          {/* Footer */}
-          <div className="d-flex align-items-center gap-3 mt-1">
-            <Button
-              size="sm"
-              variant="outline-secondary"
-              onClick={() => handleLike(r.id)}
-              className="d-flex align-items-center gap-1"
+                ) : (
+            <div
+              className="review-scroll-box p-2"
+              style={{
+                maxHeight: "400px",   // Chiều cao khung
+                overflowY: "auto",    // Kích hoạt cuộn dọc
+                border: "1px solid #eee",
+                borderRadius: "10px",
+                background: "#fff",
+              }}
             >
-              <FaRegThumbsUp /> {r.helpful_count || 0}
-            </Button>
-            {r.is_verified && <Badge bg="success">Đã mua hàng</Badge>}
-          </div>
-        </Card>
-      ))}
-  </Card>
-      ))}
-  </>
-      )}
+              <h5 className="fw-bold mb-3 sticky-top bg-white pt-2 pb-2 border-bottom">
+                Đánh giá từ khách hàng
+              </h5>
+
+              {reviews
+                .filter((r) => r.is_verified)
+                .map((r) => (
+                  <Card
+                    key={r.id}
+                    className="mb-3 shadow-sm border-0 rounded-3 hover-shadow p-2"
+                  >
+                    {/* Header */}
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <div>
+                        <strong>{r.full_name}</strong>
+                        <div className="d-flex align-items-center mt-1">
+                          {[1, 2, 3, 4, 5].map((star) =>
+                            star <= r.rating ? (
+                              <FaStar key={star} color="#ffc107" />
+                            ) : (
+                              <FaRegStar key={star} color="#ccc" />
+                            )
+                          )}
+                          <span className="ms-2 text-muted small">{r.rating} sao</span>
+                        </div>
+                      </div>
+                      <small className="text-muted">
+                        {new Date(r.created_at).toLocaleDateString("vi-VN")}
+                      </small>
+                    </div>
+
+                    {/* Nội dung */}
+                    <Card.Text style={{ whiteSpace: "pre-line", marginTop: "5px" }}>
+                      {r.content}
+                    </Card.Text>
+
+                    {/* Hình ảnh review */}
+                    {Array.isArray(r.images) && r.images.length > 0 && (
+                      <Row className="mb-2 g-2">
+                        {r.images.map((img, i) => (
+                          <Col xs={4} sm={3} md={2} key={i}>
+                            <Image
+                              src={`${URL}/uploads/reviews/${img}`}
+                              rounded
+                              thumbnail
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          </Col>
+                        ))}
+                      </Row>
+                    )}
+
+                    {/* Footer */}
+                    <div className="d-flex align-items-center gap-3 mt-1">
+                      <Button
+                        size="sm"
+                        variant="outline-secondary"
+                        onClick={() => handleLike(r.id)}
+                        className="d-flex align-items-center gap-1"
+                      >
+                        <FaRegThumbsUp /> {r.helpful_count || 0}
+                      </Button>
+                      {r.is_verified && <Badge bg="success">Đã mua hàng</Badge>}
+                    </div>
+                  </Card>
+                ))}
+            </div>
+          )}
 
       <style jsx>{`
         .hover-shadow:hover {

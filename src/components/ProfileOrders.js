@@ -181,8 +181,6 @@ useEffect(() => {
       return orders;
     };
     // Ảnh đại diện
-    console.log(orders);
-    
     const handleUpdateImg = async (file) => {
         if (!file) return;
 
@@ -751,7 +749,17 @@ useEffect(() => {
                   {/* Tabs */}
                   <ul className="nav nav-tabs mb-4">
                     <li className="nav-item">
-                      <a className="nav-link active" href="#">Tất cả ({filteredCoupons.length})</a>
+                      <a className="nav-link active" href="#">
+                          Tất cả (
+                          {
+                            filteredCoupons.filter(coupon => {
+                              const stillInStock = coupon.quantity > 0;
+                              const stillValid = new Date(coupon.end_date) >= new Date();
+                              return stillInStock && stillValid;
+                            }).length || 0
+                          }
+                          )
+                        </a>
                     </li>
                   </ul>
 

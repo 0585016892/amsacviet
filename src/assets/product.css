@@ -23,6 +23,12 @@
   margin-bottom: 10px;
 }
 
+.tab-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+}
 .main-image img {
   width: 100%;
   display: block;
@@ -534,4 +540,78 @@
 /* Vị trí nút phải */
 .main-image .nav-arrow-right {
   right: 10px;
+}
+/* Vùng chứa tabs */
+.product-mota {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Nút tab mặc định */
+#product-detail-tabs .nav-link {
+  border-radius: 30px;
+  color: #555;
+  font-weight: 500;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+  margin: 0 4px;
+  padding: 10px 20px;
+}
+
+/* Hover tab */
+#product-detail-tabs .nav-link:hover {
+  background-color: #ffe58f; /* vàng nhạt khi hover */
+  color: #000;
+}
+
+/* Tab đang active */
+#product-detail-tabs .nav-link.active {
+  background-color: #ffc107 !important; /* vàng chính */
+  color: #fff !important;
+  box-shadow: 0 3px 8px rgba(255, 193, 7, 0.5);
+  border: none;
+}
+
+/* Nội dung mỗi tab */
+#product-detail-tabs .tab-content {
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 20px;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+/* Hiệu ứng mượt khi chuyển tab */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tùy chỉnh ảnh mô tả cho gọn gàng */
+.product-mota img {
+  border-radius: 10px;
+  transition: transform 0.3s ease;
+}
+
+.product-mota img:hover {
+  transform: scale(1.02);
+}
+.review-scroll-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.review-scroll-box::-webkit-scrollbar-thumb {
+  background-color: #ffc107;
+  border-radius: 10px;
+}
+
+.review-scroll-box::-webkit-scrollbar-track {
+  background-color: #f8f9fa;
 }

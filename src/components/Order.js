@@ -280,8 +280,6 @@ const Order = () => {
       setEmail(user.email || "");
     }
   }, []);
-  console.log(coupons);
-  
   return (
     <div style={{ marginTop: "90px" }}>
       {loading && (

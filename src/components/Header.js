@@ -23,7 +23,6 @@ const Header = () => {
   const location = useLocation();
 useEffect(() => {
   const handleScroll = () => {
-    console.log("ScrollY:", window.scrollY);
     setScrolled(window.scrollY > 0);
   };
 

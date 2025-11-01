@@ -46,7 +46,6 @@ const [visibleCount, setVisibleCount] = useState(4); // 👈 Load 8 sp đầu
 
     // Lắng nghe sự kiện thêm sản phẩm
     socket.on("addProductTrue", (data) => {
-      console.log("⚡ Nhận sản phẩm mới:", data);
       // chỉ thêm nếu sản phẩm thuộc danh mục hiện tại
       if (data.categoryId === categoryData?.id) {
         setCategoryData((prev) => ({

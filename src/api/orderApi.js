@@ -6,7 +6,6 @@ const orderApi = {
   async getOrder(id) {
     try {
       const { data } = await api.get(`/orders/${id}`);
-      console.log("Chi tiết đơn hàng:", data);
       return data; 
     } catch (error) {
       console.error("Lỗi khi lấy đơn hàng:", error);

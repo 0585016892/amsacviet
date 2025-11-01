@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 
 import { useParams, Link } from "react-router-dom";
-import { Container, Row, Col, Image, Spinner } from "react-bootstrap";
+import { Container, Row, Col, Image, Tabs, Tab  } from "react-bootstrap";
 import "../assets/product.css";
 import { getProductBySlug } from "../api/sanphamWebApi";
 import SizeGuide from "./SizeGuide";
@@ -21,8 +21,6 @@ import ProductReviews from "./ProductReviews";
 const Product = () => {
   const URL = process.env.REACT_APP_WEB_URL; 
   const user = JSON.parse(localStorage.getItem("user")); // user đã đăng nhập
-  console.log(user);
-  
   const { addToCart } = useCart();
   const { slug } = useParams();
   const [product, setProduct] = useState(null);
@@ -58,7 +56,7 @@ const [selectedImage, setSelectedImage] = useState(null);
               icon: <MdOutlineLocalShipping size={25} />,
             },
             {
-              icon: <TfiReload eft size={25} />,
+              icon: <TfiReload  size={25} />,
               text: "Miễn phí đổi trả tận nhà 60 ngày",
             },
             {
@@ -249,27 +247,6 @@ showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ s�
                   ))}
                 </div>
 
-                {/* Mobile slider: d-md-none
-                <div className="d-none d-md-flex overflow-auto gap-2 mb-2">
-                  {[product.image, ...(product.subImages || [])].map((img, idx) => (
-                    <Image
-                      key={idx}
-                      src={`${URL}/uploads/${img}`}
-                      thumbnail
-                      style={{
-                        width: "80px",
-                        height: "80px",
-                        objectFit: "cover",
-                        cursor: "pointer",
-                        border:
-                          selectedImage === img ? "2px solid #0d6efd" : "1px solid #ddd",
-                        borderRadius: "8px",
-                        flexShrink: 0,
-                      }}
-                      onClick={() => setSelectedImage(img)}
-                    />
-                  ))}
-                </div> */}
 
                 {/* Main image */}
                 <div {...handlers} className="main-image position-relative">
@@ -512,31 +489,17 @@ showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ s�
             </Col>
           </div>
           <Col md={12} className="mb-5">
-             <div className="mt-2 product-mota shadow-sm rounded-3 border">
-               <button
-                      onClick={() => setShowDes(!showDes)}
-                      className="w-100 d-flex justify-content-between align-items-center px-3 py-3 bg-light border-0 rounded-top"
-                      style={{ cursor: "pointer" }}
-                    >
-                 <span style={{ fontSize: "18px", fontWeight: "600" }}>
-                  📖 Mô tả sản phẩm
-                </span>
-                 <motion.div
-                      animate={{ rotate: showDes ? 45 : 0 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ color: "black"}}
-                    >
-                      <MdAddCircleOutline size={24} />
-                    </motion.div>
-              </button>
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={showDes ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="overflow-hidden"
-                >
-              <div className={`toggle-description px-3 py-3 bg-white rounded-bottom ${showDes ? "show" : ""} ` } style={{overflowY:'auto'}}>
-                <div
+            <div className="mt-2 product-mota shadow-sm rounded-3 border bg-white p-3">
+              <Tabs
+                defaultActiveKey="description"
+                id="product-detail-tabs"
+                className="mb-3"
+                justify
+                variant="pills"
+              >
+                {/* TAB 1 - MÔ TẢ SẢN PHẨM */}
+                <Tab eventKey="description" title="📖 Mô tả sản phẩm">
+                  <div
                     style={{
                       fontSize: "15px",
                       lineHeight: "1.6",
@@ -546,7 +509,7 @@ showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ s�
                   >
                     {product.description}
                   </div>
-                <div className="text-center mt-3">
+                  <div className="text-center mt-3">
                     <img
                       src={`${URL}/uploads/${product.image}`}
                       alt={product.name}
@@ -554,8 +517,13 @@ showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ s�
                       style={{ maxHeight: "400px", objectFit: "cover" }}
                     />
                   </div>
-                </div>
-                </motion.div>
+                </Tab>
+
+                {/* TAB 2 - ĐÁNH GIÁ SẢN PHẨM */}
+                <Tab eventKey="reviews" title="⭐ Đánh giá sản phẩm">
+                  <ProductReviews productId={product.id} user={user} />
+                </Tab>
+              </Tabs>
             </div>
           </Col>
         </Row>
@@ -620,9 +588,6 @@ showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ s�
         )}
         </AnimatePresence>
 
-      </Container>
-      <Container>
-        <ProductReviews productId={product.id} user={user} />
       </Container>
     </div>
   );
