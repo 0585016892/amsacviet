@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
 import { Spinner, Alert } from "react-bootstrap";
-import { MdOutlineCreditCard } from "react-icons/md";
+import { getSettingsAPI } from "../api/settingsApi";
 import { FaTags, FaWallet } from "react-icons/fa";
-import { FiChevronRight } from "react-icons/fi";
+import { FiChevronRight,FiFrown } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import "../assets/Order.css";
-import { Container, Row, Col, Form, Button } from "react-bootstrap";
+import {  Form, Button } from "react-bootstrap";
 import { FiXCircle } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
@@ -25,51 +24,62 @@ const Order = () => {
   const navigate = useNavigate();
   const [total, setTotal] = useState(0);
   const [discount, setDiscount] = useState(0);
-  const [shipping, setShipping] = useState(20000);
+  const [shipping, setShipping] = useState(null);
   const [showCoupons, setShowCoupons] = useState(false);
   const [productDiscount, setProductDiscount] = useState(0);
+
   // Loading + success
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
-  useEffect(() => {
+  //xử lí shipping 
+    const [shippingfee, setShippingFee] = useState(null);
+useEffect(() => {
+  const fetchAll = async () => {
+    const settings = await getSettingsAPI();
+    const shippingFee = Number(settings.shipping_fee);
+    setShippingFee(shippingFee);
+
     const savedOrder = localStorage.getItem("order");
-    if (savedOrder) {
-      const items = JSON.parse(savedOrder);
-      setOrderItems(items);
+    if (!savedOrder) return;
 
-      let totalPrice = 0;
-      let discountAmount = 0;
-      let totalQuantity = 0;
+    const items = JSON.parse(savedOrder);
+    setOrderItems(items);
 
-      items.forEach((item) => {
-        const itemPrice = Number(item.price);
-        const quantity = Number(item.quantity);
-        totalQuantity += quantity;
+    let totalPrice = 0;
+    let discountAmount = 0;
+    let totalQuantity = 0;
 
-        // Tính giảm giá cho từng sản phẩm nếu có
-        let finalItemPrice = itemPrice;
+    items.forEach((item) => {
+      const itemPrice = Number(item.price);
+      const quantity = Number(item.quantity);
+      totalQuantity += quantity;
 
-        if (item.discount_value) {
-          if (item.discount_type === "percent") {
-            const percentDiscount =
-              (itemPrice * parseFloat(item.discount_value)) / 100;
-            finalItemPrice -= percentDiscount;
-            discountAmount += percentDiscount * quantity;
-          } else if (item.discount_type === "fixed") {
-            finalItemPrice -= Number(item.discount_value);
-            discountAmount += Number(item.discount_value) * quantity;
-          }
+      let finalItemPrice = itemPrice;
+
+      if (item.discount_value) {
+        if (item.discount_type === "percent") {
+          const percentDiscount =
+            (itemPrice * parseFloat(item.discount_value)) / 100;
+          finalItemPrice -= percentDiscount;
+          discountAmount += percentDiscount * quantity;
+        } else if (item.discount_type === "fixed") {
+          finalItemPrice -= Number(item.discount_value);
+          discountAmount += Number(item.discount_value) * quantity;
         }
+      }
 
-        // Tổng tiền sau khi trừ giảm giá từng sản phẩm
-        totalPrice += finalItemPrice * quantity;
-      });
+      totalPrice += finalItemPrice * quantity;
+    });
 
-      setTotal(totalPrice);
-      setProductDiscount(discountAmount); // dùng để hiển thị riêng nếu muốn
-      setShipping(totalQuantity >= 2 ? 0 : 20000); // miễn phí ship nếu có từ 2 sản phẩm
-    }
-  }, []);
+    setTotal(totalPrice);
+    setProductDiscount(discountAmount);
+
+    setShipping(totalQuantity >= 2 ? 0 : shippingFee);
+  };
+
+  fetchAll();
+}, []);
+
 
   //   xử lí tỉnh huyện xã
   const [provinces, setProvinces] = useState([]);
@@ -533,7 +543,9 @@ const Order = () => {
 
                 <div className="d-flex justify-content-between mb-2">
                   <span className="text-muted">Phí vận chuyển</span>
-                  <span className="fw-semibold">{shipping.toLocaleString("vi-VN")}đ</span>
+                  <span className="fw-semibold">
+                    {(shipping ?? 0).toLocaleString("vi-VN")}đ
+                  </span>
                 </div>
 
                 <hr className="mb-2" />
@@ -596,123 +608,147 @@ const Order = () => {
           </div>
         </div>
       </div>
-      {showCoupons && (
-        <>
-          <div
-            className={`coupon-overlay ${showCoupons ? "show" : ""}`}
-            onClick={() => setShowCoupons(false)}
-          ></div>
+        {showCoupons && (
+          <>
+            <div
+              className={`coupon-overlay ${showCoupons ? "show" : ""}`}
+              onClick={() => setShowCoupons(false)}
+            ></div>
 
-          <div className={`coupon-list ${showCoupons ? "show" : ""}`}>
-            <div className="d-flex justify-content-between align-items-center p-3">
-              <h6 className="m-0 fw-bold">🎟️ Chọn mã giảm giá</h6>
-              <button
-                style={{
-                  color: "black",
-                  borderRadius: "50%",
-                  background: "transparent",
-                  border: "none",
-                }}
-                onClick={() => setShowCoupons(false)}
-              >
-                <FiXCircle style={{ color: "#575151" }} size={28} />
-              </button>
-            </div>
-            <hr className="my-2" />
+            <div className={`coupon-list ${showCoupons ? "show" : ""}`}>
+              <div className="d-flex justify-content-between align-items-center p-3">
+                <h6 className="m-0 fw-bold">🎟️ Chọn mã giảm giá</h6>
+                <button
+                  style={{
+                    color: "black",
+                    borderRadius: "50%",
+                    background: "transparent",
+                    border: "none",
+                  }}
+                  onClick={() => setShowCoupons(false)}
+                >
+                  <FiXCircle style={{ color: "#575151" }} size={28} />
+                </button>
+              </div>
+              <hr className="my-2" />
 
-            {coupons
-              ?.filter(
+              {coupons?.filter(
                 (coupon) =>
                   coupon.status === "active" &&
                   coupon.quantity > 0 &&
                   total >= coupon.min_order_total &&
                   new Date(coupon.end_date) >= new Date()
-              )
-              .map((coupon) => {
-                const isSelected = selectedCoupon?.id === coupon.id;
+              ).length > 0 ? (
+                coupons
+                  .filter(
+                    (coupon) =>
+                      coupon.status === "active" &&
+                      coupon.quantity > 0 &&
+                      total >= coupon.min_order_total &&
+                      new Date(coupon.end_date) >= new Date()
+                  )
+                  .map((coupon) => {
+                    const isSelected = selectedCoupon?.id === coupon.id;
 
-                return (
-                  <div
-                    key={coupon.id}
-                    onClick={() => setSelectedCoupon(coupon)}
-                    className={`d-flex justify-content-between align-items-center p-3 mb-3 rounded-3 shadow-sm coupon-card ${
-                      isSelected ? "selected" : ""
-                    }`}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {/* Icon voucher */}
-                    <div className="d-flex align-items-center">
+                    return (
                       <div
-                        className="d-flex justify-content-center align-items-center rounded-circle me-3"
-                        style={{
-                          background: "#ffe5d0",
-                          width: "45px",
-                          height: "45px",
-                        }}
-                      >
-                        <span className="fw-bold text-danger fs-5">
-                          {coupon.discount_type === "percent" ? "%" : "₫"}
-                        </span>
-                      </div>
-
-                      {/* Thông tin */}
-                      <div>
-                        <div className="fw-bold text-dark">
-                          {coupon.code || "Ưu đãi đặc biệt"}
-                        </div>
-                        <div className="text-secondary small">
-                          Giảm{" "}
-                          {coupon.discount_type === "fixed"
-                            ? parseFloat(coupon.discount_value).toLocaleString("vi-VN") +
-                              " ₫"
-                            : `${parseFloat(
-                                coupon.discount_value
-                              ).toLocaleString("vi-VN")} %`}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Tick chọn */}
-                    <div>
-                     <div
-                        className={`coupon-check ${isSelected ? "selected" : ""}`}
+                        key={coupon.id}
                         onClick={() => setSelectedCoupon(coupon)}
+                        className={`d-flex justify-content-between align-items-center p-3 mb-3 rounded-3 shadow-sm coupon-card ${
+                          isSelected ? "selected" : ""
+                        }`}
+                        style={{ cursor: "pointer" }}
                       >
-                        {isSelected && <span className="check-icon">✓</span>}
+                        <div className="d-flex align-items-center">
+                          <div
+                            className="d-flex justify-content-center align-items-center rounded-circle me-3"
+                            style={{
+                              background: "#ffe5d0",
+                              width: "45px",
+                              height: "45px",
+                            }}
+                          >
+                            <span className="fw-bold text-danger fs-5">
+                              {coupon.discount_type === "percent" ? "%" : "₫"}
+                            </span>
+                          </div>
+
+                          <div>
+                            <div className="fw-bold text-dark">
+                              {coupon.code || "Ưu đãi đặc biệt"}
+                            </div>
+                            <div className="text-secondary small">
+                              Giảm{" "}
+                              {coupon.discount_type === "fixed"
+                                ? parseFloat(coupon.discount_value).toLocaleString(
+                                    "vi-VN"
+                                  ) + " ₫"
+                                : `${parseFloat(
+                                    coupon.discount_value
+                                  ).toLocaleString("vi-VN")} %`}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div
+                            className={`coupon-check ${isSelected ? "selected" : ""}`}
+                            onClick={() => setSelectedCoupon(coupon)}
+                          >
+                            {isSelected && <span className="check-icon">✓</span>}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
+                    );
+                  })
+              ) : (
+                <div className="no-coupon text-center py-5">
+                  <FiFrown size={50} color="#ff6b6b" className="bounce" />
+                  <p className="text-secondary mt-2 fw-bold">Không có mã giảm giá nào</p>
 
-          <style jsx>{`
-  .coupon-check {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 2px solid #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-  .coupon-check:hover {
-    border-color: #ffc107;
-  }
-  .coupon-check .check-icon {
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-  }
-  .coupon-check.selected {
-    background-color: #ffc107;
-    border-color: #ffc107;
-  }
-`}</style>
-        </>
+                  <style jsx>{`
+                    .bounce {
+                      display: inline-block;
+                      animation: bounce 1s infinite;
+                    }
 
-      )}
+                    @keyframes bounce {
+                      0%, 100% { transform: translateY(0); }
+                      50% { transform: translateY(-15px); }
+                    }
+                  `}</style>
+                </div>
+
+              )}
+            </div>
+
+            <style jsx>{`
+              .coupon-check {
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                border: 2px solid #ccc;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+              }
+              .coupon-check:hover {
+                border-color: #ffc107;
+              }
+              .coupon-check .check-icon {
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+              }
+              .coupon-check.selected {
+                background-color: #ffc107;
+                border-color: #ffc107;
+              }
+            `}</style>
+          </>
+        )}
+
       {showPayments && (
         <>
           <div

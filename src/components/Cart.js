@@ -6,13 +6,13 @@ import { MdOutlineLocalShipping } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { getSettingsAPI } from "../api/settingsApi";
 
 const Cart = () => {
   const URL = process.env.REACT_APP_WEB_URL;
   const [cartItems, setCartItems] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState(null);
-  const [isHiding, setIsHiding] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [showFreeShip, setshowFreeShip] = useState(false);
   const { removeItem } = useCart();
@@ -109,7 +109,22 @@ const Cart = () => {
     setCartItems(remainingCartItems);
     navigate("/order");
   };
+  const [shipping, setShipping] = useState(null);
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const data = await getSettingsAPI();
+        // Ép kiểu boolean: "true" -> true, "false" -> false
+        setShipping(Number(data.shipping_fee));
+      } catch (err) {
+        console.error("Lỗi khi lấy settings", err);
+      } 
+    };
+  
+    fetchSettings();
+  }, []);
+  
   return (
     <div style={{ marginTop: "90px", height: "900px" }}>
       <Container className="mt-4">
@@ -305,7 +320,7 @@ const Cart = () => {
               ) : (
                 <div className="p-2 mb-3 text-muted">
                   <MdOutlineLocalShipping size={20} className="me-1" />
-                  Phí vận chuyển 20.000đ
+                  Phí vận chuyển {shipping?.toLocaleString()}đ
                 </div>
               )}
               <motion.div whileHover={{ scale: 1.05 }}>

@@ -14,13 +14,31 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { getSettingsAPI } from "../api/settingsApi";
 
 const Header = () => {
+  const URL_WEB = process.env.REACT_APP_WEB_URL; // Cập nhật URL nếu khác
+
   const { user } = useAuth();
   const { totalItems } = useCart();
   const [scrolled, setScrolled] = useState(false);
+  const [logo, setLogo] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const data = await getSettingsAPI();
+        setLogo(data);
+        // Ép kiểu boolean: "true" -> true, "false" -> false
+      } catch (err) {
+        console.error("Lỗi khi lấy settings", err);
+      }
+    };
+  
+    fetchSettings();
+  }, []);
+  
 useEffect(() => {
   const handleScroll = () => {
     setScrolled(window.scrollY > 0);
@@ -136,7 +154,7 @@ const [activeCategory, setActiveCategory] = useState(
                 </Col>
                 <Col md={3} xs={4} className="text-left">
                   <Navbar.Brand href="/">
-                    <img src={Logo} height={70} alt="" />
+                    <img src={`${URL_WEB}${logo.site_logo}`} height={70} alt="" />
                   </Navbar.Brand>
                 </Col>
 

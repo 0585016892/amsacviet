@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-
+import { SettingsProvider } from "./context/SettingsContext";
 import { Provider } from "react-redux";
 import "./assets/main.css";
 import "./assets/category.css";
@@ -23,7 +23,9 @@ root.render(
       {/* Chỉ bao bọc BrowserRouter ở đây */}
       <BrowserRouter>
         <AuthProvider>
-          <App />
+           <SettingsProvider>
+            <App />
+          </SettingsProvider>
         </AuthProvider>
       </BrowserRouter>
     </PersistGate>

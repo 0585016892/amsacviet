@@ -20,4 +20,6 @@ export { default as GuitarViewer } from "./GuitarViewer";
 export { default as ProfileOrders } from "./ProfileOrders";
 export { default as OrderTracking } from "./OrderTracking";
 export { default as ProductReviews } from "./ProductReviews";
+export { default as RelatedProducts } from "./RelatedProducts";
+export { default as ScrollToTop } from "./ScrollToTop";
  

@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { useSwipeable } from "react-swipeable";
 import ProductReviews from "./ProductReviews";
-
+import RelatedProducts from './RelatedProducts'
 const Product = () => {
   const URL = process.env.REACT_APP_WEB_URL; 
   const user = JSON.parse(localStorage.getItem("user")); // user đã đăng nhập
@@ -198,6 +198,7 @@ const handlers = useSwipeable({
       </Container>
     );
   }
+  
 showColorWarning && showSuccessToast("Thông báo", "Vui lòng chọn màu sắc!");
 showSizeWarning && showSuccessToast("Thông báo", "Vui lòng chọn hình dáng!");
 showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ số lượng!");
@@ -587,7 +588,10 @@ showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ s�
           </motion.div>
         )}
         </AnimatePresence>
-
+        <RelatedProducts 
+        categoryId={product.categoryId}
+        productId={product.id}
+        />
       </Container>
     </div>
   );

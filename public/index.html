@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link id="site-favicon" rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
@@ -24,7 +24,7 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>Âm Sắc Việt - Giai điệu từ đôi tay, cảm hứng từ phụ kiện.</title>
+    <title></title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -45,5 +45,34 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+     <script>
+        const URL_WEB = 'http://localhost:5000'; // backend URL cố định
+
+        fetch(`${URL_WEB}/api/settings`)
+          .then(res => res.json())
+          .then(data => {
+            // Cập nhật title
+            if(data.site_name && data.site_description) {
+              document.title = `${data.site_name} - ${data.site_description}`;
+            }
+
+            // Cập nhật favicon
+            if(data.site_favicon) {
+              const faviconTag = document.getElementById('site-favicon');
+              const faviconUrl = `${URL_WEB}${data.site_favicon}`; // URL tuyệt đối
+              if(faviconTag) {
+                faviconTag.href = faviconUrl;
+              } else {
+                const link = document.createElement('link');
+                link.id = 'site-favicon';
+                link.rel = 'icon';
+                link.href = faviconUrl;
+                document.head.appendChild(link);
+              }
+            }
+          })
+          .catch(err => console.error("Lỗi khi lấy dữ liệu API:", err));
+      </script>
+
   </body>
 </html>
