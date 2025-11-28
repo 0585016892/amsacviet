@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 const RelatedProducts = ({ categoryId, productId }) => {
   const URL = process.env.REACT_APP_WEB_URL;
+  const URL_API = process.env.REACT_APP_API_URL;
 
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +17,7 @@ const RelatedProducts = ({ categoryId, productId }) => {
       try {
         setLoading(true);
         const res = await axios.get(
-          `http://localhost:5000/api/products/related/${categoryId}/${productId}`
+          `${URL_API}/products/related/${categoryId}/${productId}`
         );
         setRelatedProducts(res.data.data);
       } catch (error) {
