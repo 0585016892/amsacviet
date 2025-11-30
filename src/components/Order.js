@@ -13,6 +13,7 @@ import { useCart } from "../context/CartContext";
 import MOMO from '../img/momo.png'
 import COD from '../img/cod.webp'
 import couponApi from "../api/couponApi";
+import Swal from "sweetalert2";
 
 const Order = () => {
   const { user } = useAuth();
@@ -267,7 +268,14 @@ useEffect(() => {
     // 3. Xử lý theo phương thức thanh toán
     if (paymentMethod === "COD") {
       clearOrder();
-      setSuccessMsg("🎉 Đặt hàng thành công! Bạn sẽ được chuyển về trang chủ...");
+      Swal.fire({
+        title: "🎉 Đặt hàng thành công!",
+        text: "Bạn sẽ được chuyển về trang chủ...",
+        icon: "success",
+        confirmButtonText: "OK",
+        timer: 2500,
+        showConfirmButton: false,
+      });
       setTimeout(() => navigate("/"), 1500);
     } else if (paymentMethod === "MOMO") {
       if (data.payUrl) {
@@ -299,11 +307,6 @@ useEffect(() => {
         >
           <Spinner animation="border" variant="light" />
         </div>
-      )}
-      {successMsg && (
-        <Alert variant="success" className="text-center">
-          {successMsg}
-        </Alert>
       )}
       <div className="container mt-4">
         <div className="row">
