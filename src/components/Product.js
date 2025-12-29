@@ -156,22 +156,7 @@ const [selectedImage, setSelectedImage] = useState(null);
     }, 3000);
   };
 
-  // const handlePrevImage = () => {
-  //   setProduct((prevProduct) => ({
-  //     ...prevProduct,
-  //     currentImageUrlIndex:
-  //       (prevProduct.currentImageUrlIndex - 1 + prevProduct.imageUrls.length) %
-  //       prevProduct.imageUrls.length,
-  //   }));
-  // };
 
-  // const handleNextImage = () => {
-  //   setProduct((prevProduct) => ({
-  //     ...prevProduct,
-  //     currentImageUrlIndex:
-  //       (prevProduct.currentImageUrlIndex + 1) % prevProduct.imageUrls.length,
-  //   }));
-  // };
 const allImages = product ? [product.image, ...(product.subImages || [])] : [];
 const handlers = useSwipeable({
   onSwipedLeft: () => {
