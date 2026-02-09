@@ -1,33 +1,40 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col } from "react-bootstrap";
-import { FaPhoneAlt } from "react-icons/fa";
-import { IoMail } from "react-icons/io5";
-import { MdAddLocation } from "react-icons/md";
+import { Row, Col, Typography, Space, Divider, ConfigProvider, Collapse } from "antd";
+import { 
+  PhoneFilled, 
+  MailFilled, 
+  EnvironmentFilled, 
+  RightOutlined 
+} from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { getActiveFooters } from "../api/footerApi";
 import { getSlidesByArea } from "../api/slideApi";
 import { motion, AnimatePresence } from "framer-motion";
-import { io } from "socket.io-client"; 
+import { io } from "socket.io-client";
+
+const { Title, Text } = Typography;
+const { Panel } = Collapse;
 
 const Footer = () => {
   const URL = process.env.REACT_APP_WEB_URL;
-  const [footer, setFooter] = useState([]);
+  const [footerBanner, setFooterBanner] = useState([]);
   const [footerItems, setFooterItems] = useState([]);
-  const [openIndexes, setOpenIndexes] = useState({});
   const navigate = useNavigate();
 
+  // Fetch Banners (Logo/Certificates)
   useEffect(() => {
-    const fetchSlides = async () => {
+    const fetchBanners = async () => {
       try {
         const result = await getSlidesByArea("footer");
-        setFooter(result);
+        setFooterBanner(result);
       } catch (error) {
-        navigate("/server-down");
+        console.error("Footer banner error");
       }
     };
-    fetchSlides();
-  }, [navigate]);
+    fetchBanners();
+  }, []);
 
+  // Fetch Footer Content
   useEffect(() => {
     const fetchData = async () => {
       const result = await getActiveFooters();
@@ -35,195 +42,133 @@ const Footer = () => {
     };
     fetchData();
   }, []);
-useEffect(() => {
-  const socket = io(process.env.REACT_APP_WEB_URL);
 
-  socket.on("updateFooterStatus", ({ id, status }) => {
-    setFooterItems((prev) =>
-      prev.map((f) => (f.id === Number(id) ? { ...f, status } : f))
-    );
-  });
-
-  return () => {
-    socket.disconnect();
-  };
-}, []);
-  const handleClick = (index, e) => {
-    e.preventDefault();
-    setOpenIndexes((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
+  // Socket Realtime
+  useEffect(() => {
+    const socket = io(process.env.REACT_APP_WEB_URL);
+    socket.on("updateFooterStatus", ({ id, status }) => {
+      setFooterItems((prev) =>
+        prev.map((f) => (f.id === Number(id) ? { ...f, status } : f))
+      );
+    });
+    return () => socket.disconnect();
+  }, []);
 
   const renderIcon = (type) => {
+    const iconStyle = { color: "#ff4d6d", fontSize: 20 };
     switch (type) {
-      case "phone":
-        return <FaPhoneAlt size={25} style={{ marginRight: "15px" ,color: "#fff" }} />;
-      case "email":
-        return <IoMail size={25} style={{ marginRight: "15px",color: "#fff"  }} />;
-      case "address":
-        return <MdAddLocation size={25} style={{ marginRight: "15px",color: "#fff"  }} />;
-      default:
-        return null;
+      case "phone": return <PhoneFilled style={iconStyle} />;
+      case "email": return <MailFilled style={iconStyle} />;
+      case "address": return <EnvironmentFilled style={iconStyle} />;
+      default: return null;
     }
   };
 
-  const motionProps = {
-    initial: { opacity: 0, y: 20 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, amount: 0.2 },
-    transition: { duration: 0.6 },
-  };
-
   return (
-    <div style={{ background: "#111928" }}>
-      <div className="d-flex justify-content-center footer-a ">
-        <div className="d-flex justify-space-beetween contact_b">
-          <Row className="w-100">
-            {/* HI Section */}
-            <Col xs={12} md={6}>
-              {footerItems
-                ?.filter((item) => item.type === "hi")
-                ?.map((section, idx) => (
-                  <motion.div key={section.id} {...motionProps}>
-                    <p className="text-white ">
-                      {section.title}
-                    </p>
-                  </motion.div>
+    <ConfigProvider theme={{ token: { colorText: "#ffffff", colorTextSecondary: "rgba(255,255,255,0.65)" } }}>
+      <footer style={{ background: "#0a0a0f", padding: "80px 0 30px 0", overflow: "hidden", position: "relative" }}>
+        
+        {/* Trang trí background */}
+        <div style={{ position: "absolute", top: 0, left: "10%", width: "300px", height: "300px", background: "radial-gradient(circle, rgba(255,77,109,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
+
+        <div className="container" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px" }}>
+          <Row gutter={[40, 40]}>
+            
+            {/* CỘT 1: Giới thiệu & Liên hệ */}
+            <Col xs={24} lg={10}>
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                {footerItems?.filter(i => i.type === "hi").map(item => (
+                  <Title level={3} key={item.id} style={{ color: "#fff", marginBottom: 25, fontWeight: 700 }}>
+                    {item.title}
+                  </Title>
                 ))}
+                
+                <Space direction="vertical" size={20} style={{ width: "100%" }}>
+                  {footerItems?.filter(item => item.type === "lienhe").map((contact) => (
+                    <motion.div key={contact.id} whileHover={{ x: 5 }} style={{ display: "flex", alignItems: "center", gap: 15 }}>
+                      <div style={{ width: 45, height: 45, borderRadius: 12, background: "rgba(255,77,109,0.1)", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        {renderIcon(contact.value)}
+                      </div>
+                      <div>
+                        <Text type="secondary" style={{ fontSize: 12, display: "block", textTransform: "uppercase", letterSpacing: 1 }}>{contact.title}</Text>
+                        <Text strong style={{ fontSize: 15 }}>{contact.label}</Text>
+                      </div>
+                    </motion.div>
+                  ))}
+                </Space>
+              </motion.div>
             </Col>
 
-            {/* Lien He Section */}
-            <Row>
-  {footerItems
-    ?.filter(item => item.type === "lienhe")
-    ?.map((section2, idx) => (
-      <Col
-        key={section2.id}
-        xs={6}  // 2 cột trên điện thoại
-        sm={4}  // 3 cột trên sm (≥576px)
-        md={6}  // 2 cột trên md
-      >
-        <motion.div
-          className="d-flex align-items-center contact_phone m-2"
-          whileInView={{ opacity: 1, x: 0 }}
-          initial={{ opacity: 0, x: 20 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6, delay: idx * 0.2 }}
-          whileHover={{ scale: 1.05 }}
-        >
-          {renderIcon(section2.value)}
-          <div>
-            <p  style={{ color: "#fff" }} className="text-body-md text-theme-surface-secondary">
-              {section2.title}
-            </p>
-            <p  style={{ color: "#fff" }} className="text-label-lg break-words text-theme-surface">
-              {section2.label}
-            </p>
-          </div>
-        </motion.div>
-      </Col>
-    ))}
-            </Row>
-
-          </Row>
-        </div>
-
-        {/* Menu Group */}
-        <div className="d-flex justify-content-start contact_a flex-column text-white">
-          <Row>
-            <Col xs={12} md={4} className="mb-3">
-              {footerItems
-                ?.filter((item) => item.type === "group")
-                ?.map((menuItem, index) => (
-                  <div key={menuItem.id}>
-                    <motion.h5
-                      style={{ cursor: "pointer" }}
-                      onClick={(e) => handleClick(index, e)}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      viewport={{ once: true, amount: 0.3 }}
-                      transition={{ duration: 0.6, delay: index * 0.1 }}
-                      whileHover={{ scale: 1.05, color: "#facc15" }}
-                    >
-                      {menuItem.title.toUpperCase()}
-                    </motion.h5>
-                    <AnimatePresence>
-                      {openIndexes[index] && (
-                        <motion.ul
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.4 }}
-                        >
-                          {menuItem.children?.map((branch) => (
-                            <motion.li
-                              style={{ margin: "15px 0" }}
-                              key={branch.id}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              <Link to={branch.label}>
-                                {branch.title}
-                              </Link>
-                            </motion.li>
-                          ))}
-                        </motion.ul>
-                      )}
-                    </AnimatePresence>
-                  </div>
+            {/* CỘT 2: Menu Link (Group) */}
+            <Col xs={24} sm={12} lg={7}>
+              <Title level={4} style={{ color: "#fff", marginBottom: 30 }}>KHÁM PHÁ</Title>
+              <Row>
+                {footerItems?.filter(i => i.type === "group").map((group) => (
+                  <Col span={24} key={group.id} style={{ marginBottom: 15 }}>
+                    <Text strong style={{ color: "#ff4d6d", display: "block", marginBottom: 10 }}>{group.title.toUpperCase()}</Text>
+                    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                      {group.children?.map(child => (
+                        <li key={child.id} style={{ marginBottom: 8 }}>
+                          <Link to={child.label} className="footer-link">
+                            <RightOutlined style={{ fontSize: 10, marginRight: 8 }} />
+                            {child.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </Col>
                 ))}
+              </Row>
             </Col>
-          </Row>
-        </div>
 
-        {/* Footer Banner */}
-        <div className="d-flex justify-content-between m-4">
-          <Row className="w-100">
-            <Col xs={12} md={6} className="footer-banner">
-              {footer
-                ?.filter((item) => item.status === "active")
-                ?.map((footerItem, idx) => (
+            {/* CỘT 3: Banners & Social */}
+            <Col xs={24} sm={12} lg={7}>
+              <Title level={4} style={{ color: "#fff", marginBottom: 30 }}>CHỨNG NHẬN</Title>
+              <Space wrap size={20}>
+                {footerBanner?.filter(b => b.status === "active").map((banner) => (
                   <motion.img
-                    key={footerItem.id}
-                    src={`${URL}/uploads/${footerItem.image}`}
-                    height={150}
-                    width={150}
-                    alt=""
-                    initial={{ opacity: 0, x: -30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.6, delay: idx * 0.2 }}
+                    key={banner.id}
+                    src={`${URL}/uploads/${banner.image}`}
+                    alt="Certificate"
+                    style={{ height: 60, filter: "grayscale(1) brightness(2)", transition: "0.3s" }}
+                    whileHover={{ filter: "grayscale(0) brightness(1)", scale: 1.1 }}
                   />
                 ))}
-            </Col>
+              </Space>
 
-            {/* Extra section */}
-            <Col md={6} xs={12}>
-              {footerItems
-                ?.filter((item) => item.type === "@")
-                ?.map((section3, idx) => (
-                  <motion.div
-                    key={section3.id}
-                    className="d-flex flex-column text-white"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.6, delay: idx * 0.2 }}
-                  >
-                    {renderIcon(section3.value)}
-                    <p className="text-label-lg text-theme-surface">
-                      {section3.title.toUpperCase()}
-                    </p>
-                  </motion.div>
+              <div style={{ marginTop: 40 }}>
+                {footerItems?.filter(i => i.type === "@").map(copy => (
+                  <div key={copy.id} style={{ padding: "15px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <Text style={{ fontSize: 13 }}>{copy.title}</Text>
+                  </div>
                 ))}
+              </div>
             </Col>
           </Row>
+
+          <Divider style={{ borderColor: "rgba(255,255,255,0.08)", margin: "50px 0 30px 0" }} />
+          
+          <div style={{ textAlign: "center" }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              © {new Date().getFullYear()} Âm Sắc Màu - Tinh hoa âm nhạc Việt. All rights reserved.
+            </Text>
+          </div>
         </div>
-      </div>
-    </div>
+
+        <style dangerouslySetInnerHTML={{ __html: `
+          .footer-link {
+            color: rgba(255,255,255,0.6) !important;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            text-decoration: none;
+          }
+          .footer-link:hover {
+            color: #ff4d6d !important;
+            padding-left: 5px;
+          }
+        `}} />
+      </footer>
+    </ConfigProvider>
   );
 };
 

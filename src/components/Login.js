@@ -1,185 +1,199 @@
 import React, { useState } from "react";
-import {
-  Form,
-  Button,
-  Alert,
-  Spinner,
-  Card,
-} from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { 
+  Form, 
+  Input, 
+  Button, 
+  Typography, 
+  Card, 
+  message, 
+  ConfigProvider, 
+  theme 
+} from "antd";
+import { 
+  MailOutlined, 
+  LockOutlined, 
+  CustomerServiceFilled 
+} from "@ant-design/icons";
+import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
-import { motion, AnimatePresence } from "framer-motion";
-import { FaMusic } from "react-icons/fa";
+import { motion } from "framer-motion";
+
+const { Title, Text } = Typography;
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [form] = Form.useForm();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setErrorMsg("");
+  const onFinish = async (values) => {
     setLoading(true);
-
     try {
+      const { email, password } = values;
       const { token, user } = await loginUser(email, password);
+      
       localStorage.setItem("token", token);
       login(user);
+      message.success("Chào mừng bạn quay trở lại!");
       navigate("/");
     } catch (error) {
-      setErrorMsg(error);
+      // Hiển thị lỗi từ API bằng message antd
+      message.error(error || "Đăng nhập thất bại, vui lòng kiểm tra lại!");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-bg">
-      {/* Visualizer background */}
-      <div className="visualizer">
-        {[...Array(20)].map((_, i) => (
-          <span key={i} style={{ animationDelay: `${i * 0.1}s` }}></span>
-        ))}
-      </div>
+    <ConfigProvider
+      theme={{
+        algorithm: theme.darkAlgorithm,
+        token: {
+          colorPrimary: "#ff4d6d",
+          borderRadius: 12,
+        },
+      }}
+    >
+      <div className="login-bg" style={{ 
+        height: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: '#0a0a12',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Giữ nguyên Visualizer từ code cũ của bạn */}
+        <div className="visualizer">
+          {[...Array(20)].map((_, i) => (
+            <span key={i} style={{ animationDelay: `${i * 0.1}s` }}></span>
+          ))}
+        </div>
 
-      {/* Login Card */}
-      <motion.div
-        initial={{ opacity: 0, y: -40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        style={{ width: "100%", maxWidth: "400px", zIndex: 10 }}
-      >
-        <Card
-          className="shadow-lg p-4 text-light"
-          style={{
-            background: "rgba(30,30,50,0.6)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            borderRadius: "20px",
-            backdropFilter: "blur(16px)",
-            boxShadow: "0 0 25px rgba(255,75,95,0.4)",
-          }}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          style={{ width: "100%", maxWidth: 420, zIndex: 10, padding: 20 }}
         >
-          <motion.div
-            className="d-flex justify-content-center mb-3"
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            <FaMusic size={55} color="#ff4d6d" />
-          </motion.div>
-
-          <motion.h2
-            className="text-center mb-4 fw-bold"
+          <Card
+            bordered={false}
             style={{
-              letterSpacing: "1px",
-              background: "linear-gradient(90deg, #ff4d6d, #ff758c)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              background: "rgba(255, 255, 255, 0.05)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
+              borderRadius: 24,
             }}
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
           >
-            Đăng nhập
-          </motion.h2>
-
-          <AnimatePresence>
-            {errorMsg && (
+            <div style={{ textAlign: 'center', marginBottom: 30 }}>
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 3 }}
               >
-                <Alert variant="danger">{errorMsg}</Alert>
+                <CustomerServiceFilled style={{ fontSize: 50, color: '#ff4d6d' }} />
               </motion.div>
-            )}
-          </AnimatePresence>
+              <Title level={2} style={{ 
+                marginTop: 15, 
+                marginBottom: 5,
+                background: "linear-gradient(90deg, #ff4d6d, #ff758c)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}>
+                Âm Sắc Màu
+              </Title>
+              <Text type="secondary">Đăng nhập để tiếp tục trải nghiệm</Text>
+            </div>
 
-          <Form onSubmit={handleLogin}>
-            <Form.Group controlId="formEmail" className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="shadow-sm"
-                style={{
-                  borderRadius: "12px",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  background: "rgba(255,255,255,0.05)",
-                  color: "#fff",
-                }}
-              />
-            </Form.Group>
-
-            <Form.Group controlId="formPassword" className="mb-4">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="shadow-sm"
-                style={{
-                  borderRadius: "12px",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  background: "rgba(255,255,255,0.05)",
-                  color: "#fff",
-                }}
-              />
-            </Form.Group>
-
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                type="submit"
-                className="w-100 fw-bold"
-                style={{
-                  background: "linear-gradient(90deg,#ff4d6d,#ff758c)",
-                  border: "none",
-                  borderRadius: "12px",
-                  padding: "10px",
-                  fontSize: "16px",
-                  boxShadow: "0 4px 15px rgba(255,75,95,0.4)",
-                }}
-                disabled={loading}
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={onFinish}
+              size="large"
+              requiredMark={false}
+            >
+              <Form.Item
+                name="email"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập Email!' },
+                  { type: 'email', message: 'Email không đúng định dạng!' }
+                ]}
               >
-                {loading ? (
-                  <>
-                    <Spinner animation="border" size="sm" className="me-2" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Login"
-                )}
-              </Button>
-            </motion.div>
-          </Form>
+                <Input 
+                  prefix={<MailOutlined style={{ color: 'rgba(255,255,255,0.45)' }} />} 
+                  placeholder="Email của bạn"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                />
+              </Form.Item>
 
-          <div className="text-center mt-3">
-            <small className="text-muted" style={{color:'rgb(255 255 255 / 75%)'}}>
-              Don’t have an account?{" "}
-              <a
-                href="/register"
-                style={{
-                  color: "#ff758c",
-                  fontWeight: "bold",
-                  textDecoration: "none",
-                }}
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
               >
-                Sign up
-              </a>
-            </small>
-          </div>
-        </Card>
-      </motion.div>
-    </div>
+                <Input.Password 
+                  prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.45)' }} />} 
+                  placeholder="Mật khẩu"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={loading}
+                    block
+                    style={{
+                      height: 50,
+                      fontWeight: 'bold',
+                      fontSize: 16,
+                      background: "linear-gradient(90deg, #ff4d6d, #ff758c)",
+                      border: 'none',
+                      boxShadow: "0 10px 20px rgba(255, 77, 109, 0.3)"
+                    }}
+                  >
+                    ĐĂNG NHẬP
+                  </Button>
+                </motion.div>
+              </Form.Item>
+            </Form>
+
+            <div style={{ textAlign: 'center', marginTop: 10 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.65)' }}>
+                Chưa có tài khoản?{" "}
+                <Link to="/register" style={{ color: '#ff758c', fontWeight: 'bold' }}>
+                  Đăng ký ngay
+                </Link>
+              </Text>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/* CSS cho Visualizer nếu chưa có trong file CSS chung */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .visualizer {
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            align-items: flex-end;
+            gap: 5px;
+            opacity: 0.3;
+          }
+          .visualizer span {
+            width: 10px;
+            height: 20px;
+            background: #ff4d6d;
+            animation: bounce 1.5s infinite ease-in-out;
+          }
+          @keyframes bounce {
+            0%, 100% { height: 20px; }
+            50% { height: 150px; }
+          }
+        `}} />
+      </div>
+    </ConfigProvider>
   );
 };
 

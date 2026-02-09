@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Image, Button, Form } from "react-bootstrap";
-import { BsTrash, BsCartX } from "react-icons/bs";
-import { IoIosCloseCircleOutline } from "react-icons/io";
-import { MdOutlineLocalShipping } from "react-icons/md";
+import { 
+  Row, Col, Button, Checkbox, 
+  InputNumber, Typography, Empty, 
+  Modal, Space, Divider, Tag, ConfigProvider 
+} from "antd";
+import { 
+  DeleteOutlined, 
+  ShoppingCartOutlined, 
+  ArrowRightOutlined, 
+  InfoCircleOutlined,
+  TruckOutlined
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { getSettingsAPI } from "../api/settingsApi";
+
+const { Title, Text } = Typography;
 
 const Cart = () => {
   const URL = process.env.REACT_APP_WEB_URL;
@@ -15,417 +25,235 @@ const Cart = () => {
   const [selectedSlug, setSelectedSlug] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
   const [showFreeShip, setshowFreeShip] = useState(false);
+  const [shippingFee, setShippingFee] = useState(0);
   const { removeItem } = useCart();
-  const allSelected =
-    selectedItems.length === cartItems.length && cartItems.length > 0;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem("cart");
-    let storedCart = [];
-    try {
-      storedCart = JSON.parse(stored);
-      if (!Array.isArray(storedCart)) storedCart = [];
-    } catch {
-      storedCart = [];
-    }
-
-    const totalQuantity = storedCart.reduce(
-      (sum, item) => sum + item.quantity,
-      0
-    );
+    let storedCart = JSON.parse(stored) || [];
+    const totalQuantity = storedCart.reduce((sum, item) => sum + item.quantity, 0);
     setshowFreeShip(totalQuantity >= 2);
     setCartItems(storedCart);
+
+    // Fetch Shipping Fee
+    getSettingsAPI().then(data => setShippingFee(Number(data.shipping_fee)));
   }, []);
 
-  const calculateTotalPrice = () => {
-    return cartItems
-      .filter((item) => selectedItems.includes(item.slug))
-      .reduce((total, item) => {
-        const price = Number(item.price);
-        const quantity = item.quantity;
-        let finalItemPrice = price;
-
-        if (item.discount_type === "percent") {
-          finalItemPrice = price * (1 - Number(item.discount_value) / 100);
-        } else if (item.discount_type === "fixed") {
-          finalItemPrice = price - Number(item.discount_value);
-        }
-        finalItemPrice = Math.max(0, finalItemPrice);
-        return total + finalItemPrice * quantity;
-      }, 0);
+  const calculateFinalPrice = (item) => {
+    const price = Number(item.price);
+    if (item.discount_type === "percent") return price * (1 - Number(item.discount_value) / 100);
+    if (item.discount_type === "fixed") return price - Number(item.discount_value);
+    return price;
   };
 
-  const totalPrice = calculateTotalPrice();
-  const discount = 0;
-  const finalPrice = totalPrice - discount;
+  const totalPrice = cartItems
+    .filter((item) => selectedItems.includes(item.slug))
+    .reduce((total, item) => total + calculateFinalPrice(item) * item.quantity, 0);
 
-  const handleRemoveItem = (itemId) => {
-    const index = cartItems.findIndex((item) => item.slug === itemId);
-    if (index !== -1) {
-      const updatedCart = [...cartItems];
-      updatedCart.splice(index, 1);
-      setCartItems(updatedCart);
-    }
-    removeItem(itemId);
-  };
-
-  const handleQuantityChange = (itemId, newQuantity) => {
-    const updatedCart = cartItems?.map((item) =>
-      item.slug === itemId
-        ? { ...item, quantity: Math.max(1, parseInt(newQuantity)) }
-        : item
-    );
+  const handleRemoveItem = () => {
+    const updatedCart = cartItems.filter(item => item.slug !== selectedSlug);
     setCartItems(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
+    removeItem(selectedSlug);
+    setShowConfirm(false);
   };
 
-  const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      const allIds = cartItems?.map((item) => item.slug);
-      setSelectedItems(allIds);
-    } else {
-      setSelectedItems([]);
-    }
+  const updateQuantity = (slug, val) => {
+    const updated = cartItems.map(item => item.slug === slug ? { ...item, quantity: val } : item);
+    setCartItems(updated);
+    localStorage.setItem("cart", JSON.stringify(updated));
+    setshowFreeShip(updated.reduce((sum, i) => sum + i.quantity, 0) >= 2);
   };
 
-  const handleSelectItem = (slug) => {
-    setSelectedItems((prevSelected) =>
-      prevSelected.includes(slug)
-        ? prevSelected.filter((id) => id !== slug)
-        : [...prevSelected, slug]
-    );
-  };
-
-  const navigate = useNavigate();
   const handleOrder = () => {
-    const selectedProducts = cartItems.filter((item) =>
-      selectedItems.includes(item.slug)
-    );
-    localStorage.setItem("order", JSON.stringify(selectedProducts));
-    const remainingCartItems = cartItems.filter(
-      (item) => !selectedItems.includes(item.slug)
-    );
-    localStorage.setItem("cart", JSON.stringify(remainingCartItems));
-    setCartItems(remainingCartItems);
+    const selected = cartItems.filter(i => selectedItems.includes(i.slug));
+    const remaining = cartItems.filter(i => !selectedItems.includes(i.slug));
+    localStorage.setItem("order", JSON.stringify(selected));
+    localStorage.setItem("cart", JSON.stringify(remaining));
     navigate("/order");
   };
-  const [shipping, setShipping] = useState(null);
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const data = await getSettingsAPI();
-        // Ép kiểu boolean: "true" -> true, "false" -> false
-        setShipping(Number(data.shipping_fee));
-      } catch (err) {
-        console.error("Lỗi khi lấy settings", err);
-      } 
-    };
-  
-    fetchSettings();
-  }, []);
-  
   return (
-    <div style={{ marginTop: "90px", height: "900px" }}>
-      <Container className="mt-4">
-        <motion.div
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="d-flex justify-content-center"
-        >
-          <h2 style={{ fontSize: "26px" }} className="mb-4">
-            Giỏ hàng
-          </h2>
-        </motion.div>
+    <ConfigProvider theme={{ token: { colorPrimary: "#ff4d6d", borderRadius: 12 } }}>
+      <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh", padding: "120px 0 60px" }}>
+        <div className="container" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px" }}>
+          
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} style={{ marginBottom: 30 }}>
+            <Title level={2} style={{ fontWeight: 800, margin: 0 }}>Giỏ hàng của bạn</Title>
+            <Text type="secondary">Quản lý các sản phẩm bạn đã chọn trước khi thanh toán</Text>
+          </motion.div>
 
-        <Row>
-          <Col md={8} xs={12}>
-            <div
-              className="border rounded p-3 mb-3 hide-scrollbar"
-              style={{ maxHeight: "820px", overflowY: "auto" }}
-            >
-              <div className="d-flex align-items-center mb-3">
-                <input
-                  type="checkbox"
-                  className="me-2"
-                  checked={allSelected}
-                  onChange={handleSelectAll}
-                />
-                <h6 className="mb-0">Chọn tất cả</h6>
-              </div>
+          {cartItems.length > 0 ? (
+            <Row gutter={[30, 30]}>
+              {/* Cột trái: Danh sách sản phẩm */}
+              <Col xs={24} lg={16}>
+                <div style={{ backgroundColor: "#fff", borderRadius: 24, padding: "25px", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
+                    <Checkbox 
+                      onChange={(e) => setSelectedItems(e.target.checked ? cartItems.map(i => i.slug) : [])}
+                      checked={selectedItems.length === cartItems.length}
+                    >
+                      Chọn tất cả ({cartItems.length})
+                    </Checkbox>
+                    <Button type="text" danger icon={<DeleteOutlined />} disabled={selectedItems.length === 0}>
+                      Xóa mục đã chọn
+                    </Button>
+                  </div>
 
-              <AnimatePresence>
-                {cartItems?.map((item) => (
-                  <motion.div
-                    key={item.slug}
-                    initial={{ opacity: 0, x: -50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 50 }}
-                    transition={{ duration: 0.4 }}
-                    className="d-flex align-items-center mb-3 border-bottom pb-3"
-                  >
-                    <Row>
-                      <Col md={1} xs={1}>
-                        <input
-                          type="checkbox"
-                          className="me-2"
-                          checked={selectedItems.includes(item.slug)}
-                          onChange={() => handleSelectItem(item.slug)}
-                        />
-                      </Col>
-                      <Col md={3} xs={4}>
-                        {item.image && (
-                          <motion.img
-                            src={`${URL}/uploads/${item.image}`}
-                            alt={item.name}
-                            className="rounded cart__img"
-                            whileHover={{ scale: 1.05 }}
-                          />
-                        )}
-                      </Col>
-                      <Col md={8} xs={7}>
-                        <div className="d-flex flex-column justify-content-between h-100">
-                          <Row>
-                            <Col xs={10}>
-                              <h6 className="mb-1 cart__name">{item.name}</h6>
-                              <div className="cart__size">
-                                {item.size} , {item.color}
+                  <Divider style={{ margin: "10px 0 25px" }} />
+
+                  <AnimatePresence mode="popLayout">
+                    {cartItems.map((item) => (
+                      <motion.div
+                        key={item.slug}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        style={{ marginBottom: 25 }}
+                      >
+                        <Row gutter={[20, 20]} align="middle">
+                          <Col span={1}>
+                            <Checkbox 
+                              checked={selectedItems.includes(item.slug)} 
+                              onChange={() => setSelectedItems(prev => prev.includes(item.slug) ? prev.filter(s => s !== item.slug) : [...prev, item.slug])}
+                            />
+                          </Col>
+                          <Col xs={8} sm={5}>
+                            <img 
+                              src={`${URL}/uploads/${item.image}`} 
+                              alt={item.name} 
+                              style={{ width: "100%", borderRadius: 16, objectFit: "cover", aspectRatio: "1/1" }} 
+                            />
+                          </Col>
+                          <Col xs={15} sm={18}>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                              <div>
+                                <Title level={5} style={{ margin: 0 }}>{item.name}</Title>
+                                <Space style={{ marginTop: 4 }}>
+                                  <Tag color="blue">{item.size}</Tag>
+                                  <Tag color="magenta">{item.color}</Tag>
+                                </Space>
                               </div>
-                            </Col>
-                            <Col xs={2}>
-                              <Button
-                                style={{
-                                  color: "red",
-                                  background: "transparent",
-                                  border: "none",
-                                }}
-                                size="sm"
-                                className="ms-auto d-flex"
-                                onClick={() => {
-                                  setSelectedSlug(item.slug);
-                                  setShowConfirm(true);
-                                }}
-                              >
-                                <BsTrash size={18} />
-                              </Button>
-                            </Col>
-                          </Row>
-                          <div className="cart__bottom d-flex justify-content-between">
-                            <div className="quantity-selector">
-                              <div className="quantity-controls">
-                                <button
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      item.slug,
-                                      Math.max(1, item.quantity - 1)
-                                    )
-                                  }
-                                >
-                                  -
-                                </button>
-                                <Form.Control
-                                  type="number"
-                                  value={item.quantity}
-                                  readOnly
-                                  min="1"
-                                />
-                                <button
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      item.slug,
-                                      item.quantity + 1
-                                    )
-                                  }
-                                >
-                                  +
-                                </button>
+                              <Button 
+                                type="text" 
+                                shape="circle" 
+                                icon={<DeleteOutlined />} 
+                                onClick={() => { setSelectedSlug(item.slug); setShowConfirm(true); }} 
+                              />
+                            </div>
+
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 20 }}>
+                              <InputNumber 
+                                min={1} 
+                                value={item.quantity} 
+                                onChange={(val) => updateQuantity(item.slug, val)} 
+                                style={{ borderRadius: 8 }}
+                              />
+                              <div style={{ textAlign: "right" }}>
+                                {item.discount_value > 0 && (
+                                  <Text delete type="secondary" style={{ display: "block", fontSize: 13 }}>
+                                    {Number(item.price).toLocaleString()}đ
+                                  </Text>
+                                )}
+                                <Text strong style={{ fontSize: 18, color: "#ff4d6d" }}>
+                                  {calculateFinalPrice(item).toLocaleString()}đ
+                                </Text>
                               </div>
                             </div>
-                            <motion.div
-                              initial={{ scale: 0.9 }}
-                              animate={{ scale: 1 }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              <p
-                                style={{
-                                  color: "black",
-                                  fontSize: "17px",
-                                  fontWeight: "700",
-                                }}
-                              >
-                                {Number(item.price).toLocaleString("vi-VN")} đ
-                              </p>
-                              {item.discount_value && (
-                                <span className="text-danger">
-                                  -
-                                  {item.discount_type === "percent"
-                                    ? `${parseFloat(item.discount_value)}%`
-                                    : `${Number(
-                                        item.discount_value
-                                      ).toLocaleString("vi-VN")}đ`}
-                                </span>
-                              )}
-                            </motion.div>
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-
-              {cartItems.length === 0 && (
-                <motion.div
-                  className="text-center my-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                  >
-                    <BsCartX size={50} style={{ color: "#ff4d4f" }} />
-                  </motion.div>
-                  <p style={{ color: "#888" }}>Giỏ hàng của bạn đang trống.</p>
-                </motion.div>
-              )}
-            </div>
-          </Col>
-
-          <Col md={4}>
-            <motion.div
-              className="border rounded p-3"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <h6 className="mb-3">Chi tiết đơn hàng</h6>
-              <div className="d-flex justify-content-between mb-2">
-                <span>Tổng tiền:</span>
-                <span>{totalPrice?.toLocaleString()}đ</span>
-              </div>
-              <hr />
-              <div className="d-flex justify-content-between mb-3">
-                <span className="fw-bold">Thành tiền:</span>
-                <span className="fw-bold text-danger">
-                  {finalPrice?.toLocaleString()}đ
-                </span>
-              </div>
-              {showFreeShip ? (
-                <div className="p-2 mb-3 text-success">
-                  <MdOutlineLocalShipping size={20} className="me-1" />
-                  Đơn được miễn phí vận chuyển !
+                          </Col>
+                        </Row>
+                        <Divider style={{ margin: "20px 0 0" }} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
-              ) : (
-                <div className="p-2 mb-3 text-muted">
-                  <MdOutlineLocalShipping size={20} className="me-1" />
-                  Phí vận chuyển {shipping?.toLocaleString()}đ
-                </div>
-              )}
-              <motion.div whileHover={{ scale: 1.05 }}>
-                <Button
-                  variant="warning"
-                  className="w-100"
-                  disabled={selectedItems.length === 0}
-                  onClick={handleOrder}
-                >
-                  Đặt hàng <i className="bi bi-arrow-right"></i>
-                </Button>
-              </motion.div>
-            </motion.div>
-          </Col>
-        </Row>
+              </Col>
 
-        <AnimatePresence>
-          {showConfirm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-                backgroundColor: "rgba(0,0,0,0.5)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 99999999999999,
-              }}
-            >
-              <motion.div
-                initial={{ scale: 0.7, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.7, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                style={{
-                  background: "white",
-                  borderRadius: "8px",
-                  textAlign: "center",
-                  minWidth: "420px",
-                }}
+              {/* Cột phải: Thanh toán */}
+              <Col xs={24} lg={8}>
+                <div style={{ position: "sticky", top: 110 }}>
+                  <div style={{ backgroundColor: "#fff", borderRadius: 24, padding: "30px", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
+                    <Title level={4} style={{ marginBottom: 25 }}>Tóm tắt đơn hàng</Title>
+                    
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15 }}>
+                      <Text type="secondary">Tạm tính ({selectedItems.length} sản phẩm)</Text>
+                      <Text strong>{totalPrice.toLocaleString()}đ</Text>
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15 }}>
+                      <Text type="secondary">Phí vận chuyển</Text>
+                      <Text strong>{showFreeShip ? <Tag color="green">Miễn phí</Tag> : `${shippingFee.toLocaleString()}đ`}</Text>
+                    </div>
+
+                    {showFreeShip && (
+                      <div style={{ backgroundColor: "#f6ffed", padding: "12px", borderRadius: 12, border: "1px solid #b7eb8f", marginBottom: 20 }}>
+                        <Space style={{ color: "#52c41a" }}>
+                          <TruckOutlined />
+                          <Text style={{ color: "#52c41a", fontSize: 13 }}>Đã đủ điều kiện miễn phí ship!</Text>
+                        </Space>
+                      </div>
+                    )}
+
+                    <Divider />
+
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 30 }}>
+                      <Title level={4} style={{ margin: 0 }}>Tổng cộng</Title>
+                      <Title level={3} style={{ margin: 0, color: "#ff4d6d" }}>
+                        {(totalPrice + (showFreeShip ? 0 : shippingFee)).toLocaleString()}đ
+                      </Title>
+                    </div>
+
+                    <Button 
+                      type="primary" 
+                      size="large" 
+                      block 
+                      onClick={handleOrder}
+                      disabled={selectedItems.length === 0}
+                      style={{ height: 56, fontSize: 16, fontWeight: 700, borderRadius: 16 }}
+                    >
+                      TIẾP TỤC THANH TOÁN <ArrowRightOutlined />
+                    </Button>
+
+                    <div style={{ marginTop: 20, textAlign: "center" }}>
+                      <Space type="secondary" style={{ fontSize: 12 }}>
+                        <InfoCircleOutlined /> Bảo mật thanh toán 100%
+                      </Space>
+                    </div>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          ) : (
+            <div style={{ padding: "100px 0", textAlign: "center", backgroundColor: "#fff", borderRadius: 30 }}>
+              <Empty 
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={<Title level={4} type="secondary">Giỏ hàng đang trống</Title>}
               >
-                <div
-                  style={{
-                    borderBottom: "1px solid #cdc0c0",
-                    padding: "16px",
-                  }}
-                  className="d-flex justify-content-between align-items-center"
-                >
-                  <h6 style={{ fontSize: "18px" }}>Xóa sản phẩm</h6>
-                  <Button
-                    style={{
-                      color: "black",
-                      background: "transparent",
-                      border: "none",
-                    }}
-                    onClick={() => setShowConfirm(false)}
-                  >
-                    <IoIosCloseCircleOutline size={35} />
-                  </Button>
-                </div>
-                <div
-                  style={{
-                    borderBottom: "1px solid #cdc0c0",
-                    padding: "16px",
-                  }}
-                >
-                  <BsTrash size={45} style={{ color: "red", margin: "5px 0" }} />
-                  <p>Bạn có chắc chắn muốn xóa sản phẩm này không?</p>
-                </div>
-                <div style={{ padding: "16px" }}>
-                  <Row className="mt-3 justify-content-around">
-                    <Col>
-                      <Button
-                        className="delete_off"
-                        onClick={() => setShowConfirm(false)}
-                      >
-                        Không
-                      </Button>
-                    </Col>
-                    <Col>
-                      <Button
-                        className="delete_ok"
-                        variant="danger"
-                        onClick={() => {
-                          handleRemoveItem(selectedSlug);
-                          setShowConfirm(false);
-                        }}
-                      >
-                        Xóa
-                      </Button>
-                    </Col>
-                  </Row>
-                </div>
-              </motion.div>
-            </motion.div>
+                <Button type="primary" size="large" onClick={() => navigate("/")} shape="round">
+                  Tiếp tục mua sắm
+                </Button>
+              </Empty>
+            </div>
           )}
-        </AnimatePresence>
-      </Container>
-    </div>
+        </div>
+
+        {/* Modal xác nhận xóa */}
+        <Modal
+          title="Xác nhận xóa"
+          open={showConfirm}
+          onOk={handleRemoveItem}
+          onCancel={() => setShowConfirm(false)}
+          okText="Xóa ngay"
+          cancelText="Hủy"
+          okButtonProps={{ danger: true, shape: "round" }}
+          cancelButtonProps={{ shape: "round" }}
+        >
+          <Text>Bạn có chắc chắn muốn loại bỏ sản phẩm này khỏi giỏ hàng?</Text>
+        </Modal>
+      </div>
+    </ConfigProvider>
   );
 };
 

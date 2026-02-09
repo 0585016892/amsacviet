@@ -1,584 +1,319 @@
-import React, { useState, useEffect, useMemo } from "react";
-
-import { useParams, Link } from "react-router-dom";
-import { Container, Row, Col, Image, Tabs, Tab  } from "react-bootstrap";
-import "../assets/product.css";
-import { getProductBySlug } from "../api/sanphamWebApi";
-import SizeGuide from "./SizeGuide";
-import "../assets/AddToCartButton.css";
-import { MdOutlineLocalShipping, MdAddCircleOutline } from "react-icons/md";
-import { TfiReload } from "react-icons/tfi";
-import { AiOutlineFileProtect } from "react-icons/ai";
-import { getAllColors } from "../api/colorApi";
-import { useCart } from "../context/CartContext";
-import { Loading } from "../components";
-import { showSuccessToast, showErrorToast } from "../utils/toastUtils";
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { 
+  Row, Col, Button, Tag, Space, 
+  Typography, InputNumber, Tabs, 
+  Breadcrumb, Image as AntImage, 
+  ConfigProvider, Card, Badge, Alert,Divider
+} from "antd";
+import { 
+  ShoppingCartOutlined, 
+  SafetyCertificateOutlined, 
+  ReloadOutlined, 
+  TruckOutlined,
+  CheckCircleFilled,
+  HeartOutlined
+} from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaExclamationTriangle } from "react-icons/fa";
-import { useSwipeable } from "react-swipeable";
+import { useCart } from "../context/CartContext";
+import { getProductBySlug } from "../api/sanphamWebApi";
+import { getAllColors } from "../api/colorApi";
+import { Loading } from "../components";
 import ProductReviews from "./ProductReviews";
-import RelatedProducts from './RelatedProducts'
+import RelatedProducts from './RelatedProducts';
+
+const { Title, Text, Paragraph } = Typography;
+
 const Product = () => {
-  const URL = process.env.REACT_APP_WEB_URL; 
-  const user = JSON.parse(localStorage.getItem("user")); // user đã đăng nhập
-  const { addToCart } = useCart();
+  const URL = process.env.REACT_APP_WEB_URL;
+  const navigate = useNavigate();
   const { slug } = useParams();
+  const { addToCart } = useCart();
+  const user = JSON.parse(localStorage.getItem("user"));
+
   const [product, setProduct] = useState(null);
-  const [showNotification, setShowNotification] = useState(false);
-  const [addedProduct, setAddedProduct] = useState(null);
-  const [showColorWarning, setShowColorWarning] = useState(false);
-  const [showSizeWarning, setShowSizeWarning] = useState(false);
-  const [showQtyWarning, setShowQtyWarning] = useState(false);
-  const [showDes, setShowDes] = useState(false);
   const [loading, setLoading] = useState(true);
-const [selectedImage, setSelectedImage] = useState(null);
   const [colors, setColors] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [showNotification, setShowNotification] = useState(false);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const init = async () => {
       try {
-        const productData = await getProductBySlug(slug);
-
+        const [productData, colorData] = await Promise.all([
+          getProductBySlug(slug),
+          getAllColors()
+        ]);
+        setProduct(productData);
+        setColors(colorData);
         setSelectedImage(productData.image);
-
-        // Gắn thêm các field cần thiết cho frontend
-        setProduct({
-          ...productData,
-          totalPto: productData.quantity,
-          subImages: productData.subImages || [],
-          selectedColor: productData.colors ? productData.colors[0] : "",
-          selectedSize: productData.sizes ? productData.sizes[0] : "",
-          currentImageUrlIndex: 0,
-          quantity: 1,
-          yodyCamKet: [
-            {
-              text: "Giao trong 3-5 ngày và freeship từ 2 đơn",
-              icon: <MdOutlineLocalShipping size={25} />,
-            },
-            {
-              icon: <TfiReload  size={25} />,
-              text: "Miễn phí đổi trả tận nhà 60 ngày",
-            },
-            {
-              icon: <AiOutlineFileProtect size={25} />,
-              text: "Cam kết bảo mật thông tin khách hàng",
-            },
-          ],
-        });
+        // Tự động chọn màu/size đầu tiên nếu có
+        if (productData.color) setSelectedColor(productData.color.split(",")[0].trim());
+        if (productData.size) setSelectedSize(productData.size.split(",")[0].trim());
       } catch (error) {
+        console.error("Lỗi tải dữ liệu", error);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProduct();
+    init();
+    window.scrollTo(0, 0);
   }, [slug]);
-  useEffect(() => {
-    const fetchColors = async () => {
-      const data = await getAllColors();
-      setColors(data);
-    };
 
-    fetchColors();
-  }, []);
-
-  const handleColorSelect = (color) => {
-    setProduct((prevProduct) => ({
-      ...prevProduct,
-      selectedColor: color, // Lưu tên màu, ví dụ "Đen"
-    }));
-  };
-
-  const handleSizeSelect = (size) => {
-    setProduct((prevProduct) => ({
-      ...prevProduct,
-      selectedSize: size, // Cập nhật kích thước đã chọn
-    }));
-  };
-  const handleQuantityChange = (type) => {
-    setProduct((prev) => {
-      let newQuantity = prev.quantity;
-      if (type === "decrease" && newQuantity > 1) newQuantity--;
-      if (type === "increase") newQuantity++;
-      return { ...prev, quantity: newQuantity };
-    });
-  };
+  const finalPrice = product ? (() => {
+    const price = Number(product.price);
+    if (product.discount_type === "percent") return price * (1 - Number(product.discount_value) / 100);
+    if (product.discount_type === "fixed") return price - Number(product.discount_value);
+    return price;
+  })() : 0;
 
   const handleAddToCart = () => {
-    if (product.quantity > product.totalPto) {
-      setShowQtyWarning(true);
-      setTimeout(() => setShowQtyWarning(false), 2000);
-      return;
-    }
-    const {
-      id,
-      slug,
-      name,
-      selectedColor,
-      selectedSize,
-      quantity,
-      price,
-      image,
-      discount_value,
-      discount_type,
-    } = product;
+    if (quantity > product.quantity) return;
+    
     const cartItem = {
-      id,
-      slug,
-      name,
+      ...product,
       color: selectedColor,
       size: selectedSize,
       quantity,
-      price,
-      image,
-      discount_value,
-      discount_type,
     };
-    if (!product.selectedColor) {
-      setShowColorWarning(true);
-      setTimeout(() => setShowColorWarning(false), 2000);
-      return;
-    }
-    if (!product.selectedSize) {
-      setShowSizeWarning(true);
-      setTimeout(() => setShowSizeWarning(false), 2000);
-      return;
-    }
-    addToCart(cartItem);
-    // Lưu thông tin sản phẩm đã thêm vào state
-    setAddedProduct(cartItem);
-    // Hiển thị thông báo
-    setShowNotification(true);
 
-    // // Tắt thông báo sau 3 giây
-    setTimeout(() => {
-      setShowNotification(false);
-    }, 3000);
+    addToCart(cartItem);
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 4000);
   };
 
+  if (loading) return <div style={{ height: '80vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><Loading /></div>;
 
-const allImages = product ? [product.image, ...(product.subImages || [])] : [];
-const handlers = useSwipeable({
-  onSwipedLeft: () => {
-    if (allImages.length === 0) return;
-    const currentIndex = allImages.indexOf(selectedImage);
-    const nextIndex = (currentIndex + 1) % allImages.length;
-    setSelectedImage(allImages[nextIndex]);
-  },
-  onSwipedRight: () => {
-    if (allImages.length === 0) return;
-    const currentIndex = allImages.indexOf(selectedImage);
-    const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length;
-    setSelectedImage(allImages[prevIndex]);
-  },
-});
-
-  if (loading) {
-    return (
-      <Container
-        className="text-center mt-5 d-flex justify-content-center align-items-center"
-        style={{ height: 800 }}
-      >
-        <Loading />
-      </Container>
-    );
-  }
-  
-showColorWarning && showSuccessToast("Thông báo", "Vui lòng chọn màu sắc!");
-showSizeWarning && showSuccessToast("Thông báo", "Vui lòng chọn hình dáng!");
-showQtyWarning && showSuccessToast("Thông báo", "Sản phẩm không đủ số lượng!");
   return (
-    <div style={{ marginTop: "72px" }}>
-      <div className="category-header">
-        <ol
-          className="breadcrumb"
-          style={{ padding: "0 16px", marginBottom: "1rem" }}
-        >
-          <li className="breadcrumb-item">
-            <a href="/" style={{ textDecoration: "none" }}>
-              Trang chủ
-            </a>
-          </li>
-          <li className="breadcrumb-item active" aria-current="page">
-            {product.name}
-          </li>
-        </ol>
-      </div>
-      <Container>
-        <Row>
-          <div className="product-detail-container">
-            <Col md={6} xs={12}>
-              <div className="product-images">
-                {/* Desktop thumbnails: d-md-flex */}
-                <div
-                  style={{ flexDirection: "column", marginRight: 15 }}
-                  className="d-none d-md-flex flex-wrap gap-2 justify-content-center"
-                >
-                  {[product.image, ...(product.subImages || [])].map((img, idx) => (
-                    <Image
-                      key={idx}
-                      src={`${URL}/uploads/${img}`}
-                      thumbnail
-                      style={{
-                        width: "100px",
-                        height: "100px",
-                        objectFit: "cover",
-                        cursor: "pointer",
-                        border:
-                          selectedImage === img ? "2px solid #0d6efd" : "1px solid #ddd",
-                        borderRadius: "8px",
-                      }}
-                      onClick={() => setSelectedImage(img)}
-                    />
-                  ))}
-                </div>
+    <ConfigProvider theme={{ token: { colorPrimary: "#ff4d6d", borderRadius: 12 } }}>
+      <div style={{ background: "#fdfcfc", padding: "120px 0 60px" }}>
+        <div className="container" style={{ maxWidth: 1240, margin: "0 auto", padding: "0 20px" }}>
+          
+          {/* Breadcrumb */}
+          <Breadcrumb style={{ marginBottom: 30 }}>
+            <Breadcrumb.Item><Link to="/">Trang chủ</Link></Breadcrumb.Item>
+            <Breadcrumb.Item><Link to="/category">Sản phẩm</Link></Breadcrumb.Item>
+            <Breadcrumb.Item>{product.name}</Breadcrumb.Item>
+          </Breadcrumb>
 
-
-                {/* Main image */}
-                <div {...handlers} className="main-image position-relative">
-                {selectedImage && (
-                  <motion.img
-                    key={selectedImage}
+          <Row gutter={[40, 40]}>
+            {/* Cột trái: Hình ảnh */}
+            <Col xs={24} md={12}>
+              <div style={{ position: "sticky", top: 120 }}>
+                <div style={{ borderRadius: 24, overflow: "hidden", background: "#fff", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
+                  <AntImage
                     src={`${URL}/uploads/${selectedImage}`}
                     alt={product.name}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4 }}
-                    className="w-100 rounded"
+                    width="100%"
+                    preview={false}
                   />
-                )}
-
-                {/* Nút trái */}
-                <button
-                  className="nav-arrow nav-arrow-left d-md-none d-flex "
-                  style={{ zIndex: 10 }}
-                  onClick={() => {
-                    const currentIndex = allImages.indexOf(selectedImage);
-                    const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length;
-                    setSelectedImage(allImages[prevIndex]);
-                  }}
-                >
-                  &#8592;
-                </button>
-
-                {/* Nút phải */}
-                <button
-                  className="nav-arrow nav-arrow-right d-md-none d-flex "
-                  style={{ zIndex: 10 }}
-                  onClick={() => {
-                    const currentIndex = allImages.indexOf(selectedImage);
-                    const nextIndex = (currentIndex + 1) % allImages.length;
-                    setSelectedImage(allImages[nextIndex]);
-                  }}
-                >
-                  &#8594;
-                </button>
-              </div>
-              </div>
-            </Col>
-
-            <Col md={6} xs={12}>
-              {" "}
-              <div className="product-info">
-                 {/* Tên sản phẩm */}
-                <h1 className="product-name fw-bold mb-3" style={{ fontSize: "28px" }}>
-                  {product.name}
-                </h1>
+                </div>
                 
-                {product.discount_value && (
-                  <div className="mb-2">
-                     <span className="badge bg-danger fs-6 px-3 py-2">
-                      {product.discount_type === "percent"
-                        ? `Giảm giá : ${parseInt(product.discount_value)}%`
-                        : `Giảm giá : ${product.discount_value.toLocaleString(
-                            "vi-VN"
-                          )}₫`}
-                    </span>
-                  </div>
-                )}
-                <div className="product-price mb-4">
-                  <span className="current-price text-danger fw-bold fs-3 me-3">
-                    {(() => {
-                      const price = Number(product.price);
-                      let finalPrice = price;
-
-                      if (product.discount_type === "percent") {
-                        finalPrice =
-                          price * (1 - Number(product.discount_value) / 100);
-                      } else if (product.discount_type === "fixed") {
-                        finalPrice = price - Number(product.discount_value);
-                      }
-
-                      return `${Math.max(
-                        0,
-                        Math.round(finalPrice)
-                      ).toLocaleString("vi-VN")}đ`;
-                    })()}
-                  </span>
-                  {product.discount_value > 0 && (
-                    <span className="text-muted text-decoration-line-through fs-6">
-                      {Number(product.price).toLocaleString("vi-VN")}đ
-                    </span>
-                  )}
-                </div>
-                {/* Chọn màu sắc */}
-                <div className="product-options">
-                  <div
-                    style={{ marginBottom: "40px" }}
-                    className="color-options"
-                  >
-                    <label className="fw-semibold d-block mb-2">
-                      Màu sắc: 
-                      <span className="text-primary">
-                        {product.selectedColor || " Chọn màu"}
-                      </span>
-                    </label>
-                    <div className="d-flex flex-wrap gap-2">
-                      {product.color?.split(",")?.map((colorName) => {
-                        const matchedColor = colors.find(
-                          (color) =>
-                            color.name.toLowerCase().trim() ===
-                            colorName.toLowerCase().trim()
-                        );
-                        const colorCode = matchedColor
-                          ? matchedColor.code
-                          : "#ccc"; // fallback màu xám nếu không khớp
-                        return (
-                          <div
-                            key={colorName}
-                            className={`swatch-container ${
-                                product.selectedColor === colorName ? "selected" : ""
-                              }`}
-                            onClick={() => handleColorSelect(colorName)}
-                            style={{
-                                cursor: "pointer",
-                                border:
-                                  product.selectedColor === colorName
-                                    ? "2px solid #000"
-                                    : "1px solid #ddd",
-                                borderRadius: "50%",
-                                padding: "2px",
-                              }}
-                          >
-                            <div
-                              className="swatch"
-                              style={{
-                                backgroundColor: colorCode,
-                                width: "32px",
-                                height: "32px",
-                                borderRadius: "50%",
-                              }}
-                            ></div>
-                          </div>
-                        );
-                      })}
+                <div style={{ display: "flex", gap: 12, marginTop: 20, overflowX: "auto", paddingBottom: 10 }}>
+                  {[product.image, ...(product.subImages || [])].map((img, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => setSelectedImage(img)}
+                      style={{
+                        width: 80, height: 80, borderRadius: 12, overflow: "hidden", cursor: "pointer",
+                        border: selectedImage === img ? "2px solid #ff4d6d" : "2px solid transparent",
+                        transition: "0.3s"
+                      }}
+                    >
+                      <img src={`${URL}/uploads/${img}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
-                  </div>
-                  {/* Chọn hình dáng (size) */}
-                  <div
-                    style={{ marginBottom: "40px" }}
-                    className="size-options"
-                  >
-                    <label className="fw-semibold d-block mb-2">
-                      Hình dáng: 
-                       <span className="text-primary">
-                          {product.selectedSize || "Chọn hình dáng"}
-                        </span>
-                    </label>
-                    <div className="d-flex flex-wrap gap-2">
-                        {product.size?.split(",")?.map((size) => (
-                          <button
-                            key={size}
-                            className={`btn btn-outline-dark rounded-pill px-3 py-2 ${
-                              product.selectedSize === size ? "active" : ""
-                            }`}
-                            onClick={() => handleSizeSelect(size)}
-                          >
-                            {size}
-                          </button>
-                        ))}
-                    </div>
-                  </div>
-                        {/* Số lượng + Nút giỏ hàng */}
-                  <div
-                    style={{ marginBottom: "40px" }}
-                    className="quantity-selector"
-                  >
-                    <Row>
-                      <Col xs={12} md={3}>
-                        {" "}
-                        <div className="quantity-controls">
-                          <button
-                            className="btn btn-light px-3"
-                            onClick={() => handleQuantityChange("decrease")}
-                          >
-                            -
-                          </button>
-                          <input
-                            type="number"
-                            value={product.quantity}
-                            min="1"
-                            readOnly // Make it read-only as the buttons control the value
-                          />
-                          <button
-                            className="btn btn-light px-3"
-                            onClick={() => handleQuantityChange("increase")}
-                          >
-                            +
-                          </button>
-                        </div>
-                      </Col>
-                      <Col xs={12} md={9}>
-                       <motion.button
-                          className=" add-to-cart-button  rounded-pill"
-                          onClick={handleAddToCart}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          Thêm vào giỏ
-                        </motion.button>
-                      </Col>
-                    </Row>
-                  </div>
-                </div>
-
-                {/* Cam kết */}
-                <div className="yody-camket mt-4">
-                  <h5 className="fw-bold mb-3">🌟 Âm Sắc Việt cam kết</h5>
-                  <motion.ul
-                    className="list-unstyled"
-                    initial="hidden"
-                    animate="show"
-                    variants={{
-                      hidden: { opacity: 0 },
-                      show: { opacity: 1, transition: { staggerChildren: 0.2 } },
-                    }}
-                  >
-                    {product.yodyCamKet?.map((item, index) => (
-                      <motion.li
-                        key={index}
-                        className="d-flex align-items-center mb-2 p-3 border rounded-3 bg-white shadow-sm"
-                        variants={{ hidden: { y: 20, opacity: 0 }, show: { y: 0, opacity: 1 } }}
-                      >
-                        <div
-                          className="me-3 d-flex align-items-center justify-content-center bg-light rounded-circle"
-                          style={{ width: "40px", height: "40px" }}
-                        >
-                          {item.icon}
-                        </div>
-                        <p className="mb-0">{item.text}</p>
-                      </motion.li>
-                    ))}
-                  </motion.ul>
+                  ))}
                 </div>
               </div>
             </Col>
-          </div>
-          <Col md={12} className="mb-5">
-            <div className="mt-2 product-mota shadow-sm rounded-3 border bg-white p-3">
-              <Tabs
-                defaultActiveKey="description"
-                id="product-detail-tabs"
-                className="mb-3"
-                justify
-                variant="pills"
-              >
-                {/* TAB 1 - MÔ TẢ SẢN PHẨM */}
-                <Tab eventKey="description" title="📖 Mô tả sản phẩm">
-                  <div
-                    style={{
-                      fontSize: "15px",
-                      lineHeight: "1.6",
-                      color: "#333",
-                      whiteSpace: "pre-line",
-                    }}
-                  >
-                    {product.description}
-                  </div>
-                  <div className="text-center mt-3">
-                    <img
-                      src={`${URL}/uploads/${product.image}`}
-                      alt={product.name}
-                      className="img-fluid rounded shadow-sm"
-                      style={{ maxHeight: "400px", objectFit: "cover" }}
-                    />
-                  </div>
-                </Tab>
 
-                {/* TAB 2 - ĐÁNH GIÁ SẢN PHẨM */}
-                <Tab eventKey="reviews" title="⭐ Đánh giá sản phẩm">
-                  <ProductReviews productId={product.id} user={user} />
-                </Tab>
-              </Tabs>
-            </div>
-          </Col>
-        </Row>
+            {/* Cột phải: Thông tin */}
+            <Col xs={24} md={12}>
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                <Space direction="vertical" size="small">
+                  <Tag color="volcano" style={{ borderRadius: 6 }}>ÂM SẮC VIỆT EXCLUSIVE</Tag>
+                  <Title level={1} style={{ margin: "8px 0", fontSize: 32, fontWeight: 800 }}>{product.name}</Title>
+                  <Space align="center" style={{ marginBottom: 15 }}>
+                    <Badge status="success" text="Còn hàng" />
+                    <Divider type="vertical" />
+                    <Text type="secondary">Mã sản phẩm: ASV-{product.id}</Text>
+                  </Space>
+                </Space>
+
+                <div style={{ background: "#fff5f6", padding: "20px", borderRadius: 20, marginBottom: 30 }}>
+                  <Space align="baseline" size="large">
+                    <Title level={2} style={{ color: "#ff4d6d", margin: 0, fontWeight: 800 }}>
+                      {Math.round(finalPrice).toLocaleString()}đ
+                    </Title>
+                    {product.discount_value > 0 && (
+                      <Text delete type="secondary" style={{ fontSize: 18 }}>
+                        {Number(product.price).toLocaleString()}đ
+                      </Text>
+                    )}
+                    {product.discount_value > 0 && (
+                      <Tag color="#ff4d6d" style={{ border: "none", fontWeight: 700 }}>
+                         TIẾT KIỆM {product.discount_type === 'percent' ? `${product.discount_value}%` : `${(product.discount_value/1000)}k`}
+                      </Tag>
+                    )}
+                  </Space>
+                </div>
+
+                {/* Tùy chọn Màu sắc */}
+                <div style={{ marginBottom: 25 }}>
+                  <Text strong>Màu sắc: </Text> <Text type="secondary">{selectedColor}</Text>
+                  <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+                    {product.color?.split(",").map((c) => {
+                      const colorObj = colors.find(item => item.name.trim().toLowerCase() === c.trim().toLowerCase());
+                      return (
+                        <div 
+                          key={c}
+                          className={`color-swatch ${selectedColor === c.trim() ? 'active' : ''}`}
+                          onClick={() => setSelectedColor(c.trim())}
+                          style={{ backgroundColor: colorObj?.code || '#ccc' }}
+                          title={c}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Tùy chọn Size */}
+                <div style={{ marginBottom: 30 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <Text strong>Hình dáng / Kích cỡ:</Text>
+                    <Text type="primary" style={{ cursor: "pointer", fontSize: 12 }}>Bảng quy đổi kích cỡ</Text>
+                  </div>
+                  <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+                    {product.size?.split(",").map((s) => (
+                      <Button 
+                        key={s}
+                        type={selectedSize === s.trim() ? "primary" : "default"}
+                        onClick={() => setSelectedSize(s.trim())}
+                        style={{ minWidth: 60, height: 45, borderRadius: 10 }}
+                      >
+                        {s}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Số lượng & Mua hàng */}
+                <div style={{ display: "flex", gap: 15, marginBottom: 40 }}>
+                  <InputNumber 
+                    min={1} 
+                    max={product.quantity} 
+                    value={quantity} 
+                    onChange={setQuantity}
+                    style={{ height: 50, width: 100, display: "flex", alignItems: "center", borderRadius: 12 }}
+                  />
+                  <Button 
+                    type="primary" 
+                    icon={<ShoppingCartOutlined />} 
+                    onClick={handleAddToCart}
+                    style={{ flex: 1, height: 50, fontWeight: 700, fontSize: 16 }}
+                  >
+                    THÊM VÀO GIỎ HÀNG
+                  </Button>
+                  <Button icon={<HeartOutlined />} style={{ height: 50, width: 50, borderRadius: 12 }} />
+                </div>
+
+                {/* Cam kết thương hiệu */}
+                <Row gutter={[15, 15]}>
+                  {[
+                    { icon: <TruckOutlined />, title: "Giao hàng nhanh", desc: "Từ 2-4 ngày toàn quốc" },
+                    { icon: <ReloadOutlined />, title: "60 ngày đổi trả", desc: "Miễn phí tận nơi" },
+                    { icon: <SafetyCertificateOutlined />, title: "Bảo hành 12 tháng", desc: "Chính hãng Âm Sắc Việt" },
+                  ].map((item, i) => (
+                    <Col span={8} key={i}>
+                      <Card bodyStyle={{ padding: "12px", textAlign: "center" }} bordered={false} style={{ background: "#f8f9fa", borderRadius: 16 }}>
+                        <div style={{ color: "#ff4d6d", fontSize: 20, marginBottom: 5 }}>{item.icon}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700 }}>{item.title}</div>
+                        <div style={{ fontSize: 10, color: "#888" }}>{item.desc}</div>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </motion.div>
+            </Col>
+          </Row>
+
+          {/* Chi tiết & Đánh giá */}
+          <div style={{ marginTop: 80, background: "#fff", padding: "40px", borderRadius: 30, boxShadow: "0 10px 40px rgba(0,0,0,0.02)" }}>
+            <Tabs defaultActiveKey="1" centered size="large">
+              <Tabs.TabPane tab="Mô tả chi tiết" key="1">
+                <div style={{ maxWidth: 800, margin: "0 auto", padding: "20px 0" }}>
+                  <Paragraph style={{ fontSize: 16, lineHeight: "1.8", color: "#444", whiteSpace: "pre-line" }}>
+                    {product.description}
+                  </Paragraph>
+                  <img src={`${URL}/uploads/${product.image}`} style={{ width: "100%", borderRadius: 20, marginTop: 30 }} />
+                </div>
+              </Tabs.TabPane>
+              <Tabs.TabPane tab={`Đánh giá khách hàng`} key="2">
+                <ProductReviews productId={product.id} user={user} />
+              </Tabs.TabPane>
+            </Tabs>
+          </div>
+
+          <RelatedProducts categoryId={product.categoryId} productId={product.id} />
+        </div>
+
+        {/* Thông báo thêm vào giỏ hàng (Pop-up) */}
         <AnimatePresence>
-        {showNotification && addedProduct && (
-            <motion.div
-               initial={{ y: 100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="notification show">
-            <div className="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center">
-              <h6 className="mb-0">Đã thêm vào giỏ hàng</h6>
-              <button
-                type="button"
-                className="btn-close"
-                aria-label="Close"
-                onClick={() => setShowNotification(false)}
-              ></button>
-            </div>
-            <hr />
-            <div className="card-body d-flex align-items-center">
-              <div className="me-3">
-                <img
-                  src={`${URL}/uploads/${product.image}`}
-                  alt="Product Image"
-                  className="rounded"
-                  style={{ width: "100%", height: "80px", objectFit: "cover" }}
-                />
-              </div>
-              <div className="info">
-                <div>
-                  {" "}
-                  <h6
-                    className="card-title mb-1 fw-bold"
-                    style={{ fontSize: "0.9rem" }}
-                  >
-                    {addedProduct.name}
-                  </h6>
-                  <p
-                    className="card-text mb-0"
-                    style={{ fontSize: "0.8rem", color: "#6c757d" }}
-                  >
-                    x{addedProduct.quantity} {addedProduct.color}{" "}
-                    {addedProduct.size}
-                  </p>
-                </div>
-                <div className="price__a">
-                  <h5 className="card-title mb-0">
-                    {" "}
-                    {Number(addedProduct.price)?.toLocaleString("vi-VN")} đ
-                  </h5>
-                </div>
-              </div>
-            </div>
-            <div className="card-footer bg-white border-top-0 d-grid">
-              <Link to="/cart" className="btn btn-light rounded">
-                Xem giỏ hàng
-              </Link>
-            </div>
-          </motion.div>
-        )}
+          {showNotification && (
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: 50 }}
+              style={{ position: "fixed", bottom: 40, right: 40, zIndex: 1000, width: 350 }}
+            >
+              <Card className="notification-card">
+                <Space align="start">
+                  <CheckCircleFilled style={{ color: "#52c41a", fontSize: 24, marginTop: 4 }} />
+                  <div>
+                    <Text strong>Thêm thành công!</Text>
+                    <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                      <img src={`${URL}/uploads/${product.image}`} style={{ width: 50, borderRadius: 8 }} />
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 600 }}>{product.name}</div>
+                        <div style={{ fontSize: 11, color: "#888" }}>SL: {quantity} | {selectedColor}</div>
+                      </div>
+                    </div>
+                    <Button type="primary" block size="small" style={{ marginTop: 15 }} onClick={() => navigate("/cart")}>
+                      XEM GIỎ HÀNG
+                    </Button>
+                  </div>
+                </Space>
+              </Card>
+            </motion.div>
+          )}
         </AnimatePresence>
-        <RelatedProducts 
-        categoryId={product.categoryId}
-        productId={product.id}
-        />
-      </Container>
-    </div>
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .color-swatch {
+          width: 32px; height: 32px;
+          border-radius: 50%;
+          cursor: pointer;
+          border: 2px solid transparent;
+          box-shadow: inset 0 0 0 2px #fff;
+          transition: 0.3s;
+        }
+        .color-swatch.active {
+          border-color: #ff4d6d;
+          transform: scale(1.1);
+        }
+        .notification-card {
+          border-radius: 20px;
+          box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+          border: none;
+        }
+        .ant-tabs-ink-bar { background: #ff4d6d !important; }
+        .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn { color: #ff4d6d !important; }
+      `}} />
+    </ConfigProvider>
   );
 };
 

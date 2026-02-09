@@ -1,451 +1,301 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, Button, Navbar,Card,Container } from "react-bootstrap";
-import { FaSearch, FaBars } from "react-icons/fa";
-import Logo from "../img/logo.png";
-import a from "../img/1.webp";
-import { IoMdClose, IoIosArrowDown, IoIosLogIn } from "react-icons/io";
-import { GoArrowUpRight } from "react-icons/go";
-import { FaHouseChimney } from "react-icons/fa6";
-import { CiShoppingCart, CiUser } from "react-icons/ci";
-import { Link, useLocation } from "react-router-dom";
-import { FaBlog } from "react-icons/fa";
-import categoryService from "../api/danhmucWebApi";
-import { useNavigate } from "react-router-dom";
+import { 
+  Layout, 
+  Button, 
+  Input, 
+  Badge, 
+  Row, 
+  Col, 
+  Drawer, 
+  Space, 
+  Typography, 
+  Card, 
+  Tabs,
+  ConfigProvider
+} from "antd";
+import { 
+  SearchOutlined, 
+  MenuOutlined, 
+  ShoppingCartOutlined, 
+  UserOutlined, 
+  LoginOutlined,
+  CloseOutlined,
+  ArrowRightOutlined
+} from "@ant-design/icons";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-import { motion, AnimatePresence } from "framer-motion";
+import categoryService from "../api/danhmucWebApi";
 import { getSettingsAPI } from "../api/settingsApi";
 
-const Header = () => {
-  const URL_WEB = process.env.REACT_APP_WEB_URL; // Cập nhật URL nếu khác
+const { Header } = Layout;
+const { Title, Text } = Typography;
 
+const CustomerHeader = () => {
+  const URL_WEB = process.env.REACT_APP_WEB_URL;
   const { user } = useAuth();
   const { totalItems } = useCart();
-  const [scrolled, setScrolled] = useState(false);
-  const [logo, setLogo] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const data = await getSettingsAPI();
-        setLogo(data);
-        // Ép kiểu boolean: "true" -> true, "false" -> false
-      } catch (err) {
-        console.error("Lỗi khi lấy settings", err);
-      }
-    };
-  
-    fetchSettings();
-  }, []);
-  
-useEffect(() => {
-  const handleScroll = () => {
-    setScrolled(window.scrollY > 0);
-  };
-
-  window.addEventListener("scroll", handleScroll);
-  return () => window.removeEventListener("scroll", handleScroll);
-}, []);
-  // Lắng nghe sự thay đổi của location (URL)
-  useEffect(() => {
-    // Khi URL thay đổi, đóng menu
-    setIsMenuOpen(false);
-  }, [location]); // Mỗi khi location thay đổi, chạy lại useEffect
-
-  // Toggle menu khi click vào button
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-  const [categoryData, setCategoryData] = useState([]);
-  const [collections, setCollectionsData] = useState([]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await categoryService.getCategories();
-        setCategoryData(data);
-      } catch (error) {
-      }
-    };
-
-    fetchCategories();
-  }, []);
-   useEffect(() => {
-    const  fetchCollections = async () => {
-      try {
-        const data = await categoryService.getCollection();
-        setCollectionsData(data.data);
-      } catch (error) {
-      }
-    };
-
-     fetchCollections();
-   }, []);
-  
-  // tìm kiếm
-  const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (keyword.trim()) {
-      navigate(`/search?keyword=${encodeURIComponent(keyword.trim())}`);
+  // States
+  const [scrolled, setScrolled] = useState(false);
+  const [settings, setSettings] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [categoryData, setCategoryData] = useState([]);
+  const [collections, setCollectionsData] = useState([]);
+  const [activeTab, setActiveTab] = useState(null);
+  const [keyword, setKeyword] = useState("");
+
+  // Fetch Data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [settingsRes, categoriesRes, collectionsRes] = await Promise.all([
+          getSettingsAPI(),
+          categoryService.getCategories(),
+          categoryService.getCollection()
+        ]);
+        setSettings(settingsRes);
+        setCategoryData(categoriesRes);
+        setCollectionsData(collectionsRes.data);
+        if (categoriesRes.length > 0) setActiveTab(categoriesRes[0].id);
+      } catch (err) {
+        console.error("Lỗi fetch data:", err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Handle Scroll
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Đóng menu khi đổi trang
+  useEffect(() => setIsMenuOpen(false), [location]);
+
+  const handleSearch = (value) => {
+    if (value.trim()) {
+      navigate(`/search?keyword=${encodeURIComponent(value.trim())}`);
+      setIsMenuOpen(false);
     }
   };
-  const [cartCount, setCartCount] = useState(0);
 
-  const updateCartCount = () => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCartCount(cart.length);
-  };
-    const categoryVariants = {
-      hidden: { opacity: 0, y: 20 },
-      visible: (i) => ({
-        opacity: 1,
-        y: 0,
-        transition: { delay: i * 0.1, duration: 0.3 }
-      })
-    };
+  const activeCategory = categoryData.find(cat => cat.id === activeTab);
 
-  useEffect(() => {
-    updateCartCount(); // load ban đầu
-
-    // lắng nghe sự kiện cartUpdated
-    window.addEventListener("cartUpdated", updateCartCount);
-
-    // cleanup khi unmount
-    return () => {
-      window.removeEventListener("cartUpdated", updateCartCount);
-    };
-  }, []);
-const [activeCategory, setActiveCategory] = useState(
-  categoryData && categoryData.length > 0 ? categoryData[0] : null
-);
   return (
-    <div>
-      {!isMenuOpen && (
-        <div
-          style={{
-            position: "fixed",
-            left: "0",
-            top: "0",
-            zIndex: "9999999999",
-            width: "100%",
-          }}
-        >
-          <Navbar
-            bg=""
-            expand="lg"
-            className={`py-3 ${scrolled ? "bg-white shadow-sm" : ""}`}
-            style={{
-              transition: "all 0.3s ease", // để chuyển mượt
-              backgroundColor: scrolled ? "white" : "transparent",
-            }}
-          >
-            <div className="container-fluid">
-              <Row className="w-100 align-items-center">
-                <Col md={6} xs={4} className="d-flex justify-content-start">
-                  <FaBars
-                    size={24}
-                    onClick={toggleMenu}
-                    style={{ cursor: "pointer" }}
-                  />
-                </Col>
-                <Col md={3} xs={4} className="text-left">
-                  <Navbar.Brand href="/">
-                    <img src={`${URL_WEB}${logo.site_logo}`} height={70} alt="" />
-                  </Navbar.Brand>
-                </Col>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: "#000",
+          borderRadius: 8,
+        },
+      }}
+    >
+      <Header
+        style={{
+          position: "fixed",
+          zIndex: 1000,
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: scrolled ? "0 40px" : "10px 40px",
+          background: scrolled ? "rgba(255, 255, 255, 0.95)" : "transparent",
+          backdropFilter: scrolled ? "blur(10px)" : "none",
+          boxShadow: scrolled ? "0 2px 10px rgba(0,0,0,0.05)" : "none",
+          transition: "all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)",
+          height: scrolled ? 64 : 80,
+        }}
+      >
+        <Space size="large">
+          <Button 
+            type="text" 
+            icon={<MenuOutlined style={{ fontSize: 20 }} />} 
+            onClick={() => setIsMenuOpen(true)}
+          />
+        </Space>
 
-                <Col md={3} xs={4} className="d-flex justify-content-end">
-                  <div className="search-form d-none d-md-block">
-                    <Form.Control
-                      type="search"
-                      placeholder="Tìm kiếm"
-                      className="me-2 rounded-lg search "
-                      onClick={toggleMenu}
-                    />
-                    <span>
-                      <FaSearch size={20} />
-                    </span>
-                  </div>
-                  <Button
-                    className="cart-btn"
-                    variant="light"
-                    style={{
-                      position: "relative",
-                      border: "none",
-                      background: "transparent",
-                    }}
-                  >
-                    <a
-                      href="/cart"
-                      style={{
-                        position: "relative",
-                        display: "inline-block",
-                      }}
-                    >
-                      <CiShoppingCart size={25} style={{ color: "black" }} />
-                      {totalItems > 0 && (
-                        <span className="total__cart">{totalItems}</span>
-                      )}
-                    </a>
-                  </Button>
-                  {user ? (
-                    <Button
-                      className="cart-btn"
-                      variant="light"
-                      style={{
-                        position: "relative",
-                        border: "none",
-                        background: "transparent",
-                      }}
-                    >
-                      <a
-                        href="/profile"
-                        style={{
-                          position: "relative",
-                          display: "inline-block",
-                        }}
-                      >
-                        <CiUser size={25} style={{ color: "black" }} />
-                      </a>
-                    </Button>
-                  ) : (
-                    <Button
-                      variant=""
-                      href="/login"
-                      style={{
-                        borderRadius: "20px",
-                        fontWeight: "bold",
-                        padding: "5px ",
-                      }}
-                    >
-                      <IoIosLogIn size={25} style={{ color: "black" }} />
-                    </Button>
-                  )}
-                </Col>
-              </Row>
-            </div>
-          </Navbar>
+        <div className="logo" style={{ cursor: 'pointer' }} onClick={() => navigate("/")}>
+          <img 
+            src={settings ? `${URL_WEB}${settings.site_logo}` : ""} 
+            height={scrolled ? 40 : 50} 
+            alt="Logo"
+            style={{ transition: 'all 0.3s' }}
+          />
         </div>
-      )}
-       {isMenuOpen && (
-        <div className="">
-          <div
-              className="menu-overlay slide-down"
-            style={{
-              position: "fixed",
-              top: "0", // Điều chỉnh cho phù hợp với chiều cao của Navbar
-              left: "0",
-              width: "100%",
-              maxHeight: "100%",
-              height: "100%", // Hoặc một chiều cao cố định tùy ý
-              backgroundColor: "white",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-              zIndex: "9999999998", // Đảm bảo ở dưới header nhưng trên các nội dung khác
-              padding: "20px",
-            }}
-          >
-            <div className="menu-overlay__icon">
-              <div className="menu_header d-flex justify-content-between">
-                <div className="logo">
-                  <img src={Logo} height={35} alt="" />
-                </div>
-                <div className="search-form" style={{ width: "50%" }}>
-                  <form
-                    className="search-form d-flex align-items-center"
-                    onSubmit={handleSearch}
-                  >
-                    <Form.Control
-                      type="search"
-                      placeholder="Tìm kiếm"
-                      className="me-2 rounded-lg search"
-                      value={keyword}
-                      onChange={(e) => setKeyword(e.target.value)}
-                    />
-                    <button
-                      type="submit"
-                      style={{ background: "none", border: "none" }}
-                    >
-                      <FaSearch size={20} />
-                    </button>
-                  </form>
-                </div>
-                <Button
-                  className="cart-btn "
-                  variant="light"
-                  style={{
-                    position: "relative",
-                    border: "none",
-                    background: "transparent",
-                  }}
-                >
-                  <a
-                    href="/cart"
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                    }}
-                  >
-                    <CiShoppingCart size={25} style={{ color: "black" }} />
-                    {cartCount > 0 && (
-                      <span className="total__cart">{cartCount}</span>
-                    )}
-                  </a>
-                </Button>
-              </div>
-            </div>
-            {/* Nội dung menu của bạn sẽ được đặt ở đây */}
-            <div className="m-md-4 m-5">
-              {/* <div className="category_blog d-none d-md-flex justify-content-center gap-4">
-                <a
-                  href="/he-thong-cua-hang"
-                  className="d-flex align-items-center gap-2 justify-content-center"
-                >
-                  <p>CỬA HÀNG</p>
-                  <FaHouseChimney size={25} />
-                </a>
-                <a
-                  href="/blog"
-                  className="d-flex align-items-center gap-2 justify-content-center"
-                >
-                  <p>TIN TỨC</p>
-                  <FaBlog size={25} />
-                </a>
-              </div> */}
-              {/* Nút đóng góc phải */}
-                    <button
-                      onClick={toggleMenu}
-                      style={{
-                        position: "absolute",
-                        top: "95px",
-                        right: "15px",
-                        background: "rgb(248, 251, 26)",
-                        border: "none",
-                        borderRadius: "50%",
-                        width: "40px",
-                        height: "40px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-                        cursor: "pointer",
+
+        <Space size="middle">
+          <Input
+            placeholder="Tìm kiếm..."
+            prefix={<SearchOutlined />}
+            onPressEnter={(e) => handleSearch(e.target.value)}
+            className="d-none d-md-flex"
+            style={{ borderRadius: 20, width: 200, background: 'rgba(0,0,0,0.03)', border: 'none' }}
+          />
+          
+          <Badge count={totalItems} size="small" offset={[-5, 5]} color="#000">
+            <Button 
+              type="text" 
+              icon={<ShoppingCartOutlined style={{ fontSize: 22 }} />} 
+              onClick={() => navigate("/cart")}
+            />
+          </Badge>
+
+          {user ? (
+            <Button 
+              type="text" 
+              icon={<UserOutlined style={{ fontSize: 22 }} />} 
+              onClick={() => navigate("/profile")}
+            />
+          ) : (
+            <Button 
+              type="primary" 
+              shape="round" 
+              icon={<LoginOutlined />}
+              onClick={() => navigate("/login")}
+            >
+              Đăng nhập
+            </Button>
+          )}
+        </Space>
+      </Header>
+
+      {/* Mega Menu Drawer */}
+      <Drawer
+        placement="top"
+        onClose={() => setIsMenuOpen(false)}
+        open={isMenuOpen}
+        height="100vh"
+        closable={false}
+        bodyStyle={{ padding: '20px 50px' }}
+      >
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          {/* Header trong Menu */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+            <Title level={3} style={{ margin: 0 }}>Khám phá</Title>
+            <Space>
+               <Input.Search
+                placeholder="Bạn đang tìm gì?"
+                allowClear
+                enterButton="Tìm"
+                size="large"
+                onSearch={handleSearch}
+                style={{ width: 400 }}
+              />
+              <Button 
+                type="text" 
+                icon={<CloseOutlined style={{ fontSize: 20 }} />} 
+                onClick={() => setIsMenuOpen(false)} 
+              />
+            </Space>
+          </div>
+
+          <Row gutter={48}>
+            {/* Cột danh mục */}
+            <Col span={14}>
+              <Title level={5} type="secondary" style={{ marginBottom: 24, letterSpacing: 1 }}>DANH MỤC SẢN PHẨM</Title>
+              <Tabs
+                tabPosition="left"
+                activeKey={activeTab}
+                onChange={setActiveTab}
+                items={categoryData.map(cat => ({
+                  key: cat.id,
+                  label: cat.name,
+                  children: (
+                    <motion.div 
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="d-grid"
+                      style={{ 
+                        gridTemplateColumns: 'repeat(2, 1fr)', 
+                        gap: '15px', 
+                        paddingLeft: 40 
                       }}
                     >
-                      <IoMdClose size={22} color="#000" />
-                    </button>
-              <Container  fluid className="py-4"> 
-                {/* Danh mục */}
-                <div  className="mb-4">
-                  <h4 className="fw-bold mb-3 text-center">Danh mục sản phẩm</h4>
-
-                  {/* Tabs danh mục cha */}
-                  <div className="d-flex justify-content-center flex-wrap gap-3 border-bottom pb-2 mb-3">
-                    {categoryData?.map((categoryItem) => (
-                      <button
-                        key={categoryItem.id}
-                        className={`btn btn-sm rounded-pill ${
-                          activeCategory?.id === categoryItem.id
-                            ? "btn-dark text-white"
-                            : "btn-outline-dark"
-                        }`}
-                        onClick={() => setActiveCategory(categoryItem)}
-                      >
-                        {categoryItem.name}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Grid danh mục con */}
-                 <motion.div
-                  key={activeCategory?.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="d-grid"
-                  style={{
-                    gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-                    gap: "15px",
-                  }}
-                >
-                  {activeCategory?.dmCon?.map((subCategory) => (
-                    <motion.div
-                      key={subCategory.child_id}
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <Link
-                        to={`/category/${subCategory.child_slug}`}
-                        className="text-decoration-none"
-                      >
-                        <div
-                          className="rounded-pill text-center fw-semibold shadow-sm"
-                          style={{
-                            padding: "12px 18px",
-                            background: "#f8f9fa",
-                            border: "1px solid #dee2e6",
-                            transition: "all 0.2s ease",
+                      {cat.dmCon?.map(sub => (
+                        <Link 
+                          key={sub.child_id} 
+                          to={`/category/${sub.child_slug}`}
+                          style={{ 
+                            padding: '12px 20px', 
+                            background: '#f5f5f5', 
+                            borderRadius: 12,
+                            color: '#333',
+                            fontWeight: 500,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
                           }}
+                          className="sub-cat-item"
                         >
-                          {subCategory.child_name}
-                        </div>
-                      </Link>
+                          {sub.child_name}
+                          <ArrowRightOutlined style={{ fontSize: 12, opacity: 0 }} className="arrow-icon" />
+                        </Link>
+                      ))}
                     </motion.div>
-                  ))}
-                </motion.div>
+                  )
+                }))}
+              />
+            </Col>
 
-                </div>
-
-
-                <div className="d-flex gap-3">
-                  {Array.isArray(collections) && collections.length > 0 ? (
-                      collections.map((col) => (
-                        <Col md={12} key={col.id} className="mb-4 " style={{ width:'40%'}}>
-                          <motion.div
-                           
-                    initial={{ opacity: 0, y: 30 }}     // bắt đầu mờ và trượt xuống
-                    animate={{ opacity: 1, y: 0 }}      // hiện rõ và về đúng vị trí
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    whileHover={{ scale: 1.03 }}        // khi hover thì phóng to nhẹ
-                  >
-                    <Card className="border-0 shadow-sm h-90">
-                      <Card.Img
-                        variant="top"
-                        src={
-                          col.image?.startsWith("http")
-                            ? col.image
-                            : `${process.env.REACT_APP_WEB_URL}/uploads/${col.image}`
-                        }
-                        style={{ height: "200px", objectFit: "cover" }}
+            {/* Cột Bộ sưu tập (Collections) */}
+            <Col span={10}>
+              <Title level={5} type="secondary" style={{ marginBottom: 24, letterSpacing: 1 }}>BỘ SƯU TẬP MỚI</Title>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {collections?.slice(0, 2).map((col) => (
+                  <motion.div key={col.id} whileHover={{ y: -5 }}>
+                    <Card
+                      hoverable
+                      cover={
+                        <img 
+                          alt={col.name} 
+                          src={col.image?.startsWith("http") ? col.image : `${URL_WEB}/uploads/${col.image}`} 
+                          style={{ height: 180, objectFit: 'cover' }}
+                        />
+                      }
+                      bodyStyle={{ padding: 15 }}
+                    >
+                      <Card.Meta 
+                        title={col.name} 
+                        description={col.description?.slice(0, 60) + '...'} 
                       />
-                      <Card.Body>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <Card.Title className="mb-0 fs-5">{col.name}</Card.Title>
-                        </div>
-                        <Card.Text className="text-muted" style={{ minHeight: "60px" }}>
-                          {col.description?.slice(0, 100)}...
-                        </Card.Text>
-                      </Card.Body>
                     </Card>
                   </motion.div>
-                </Col>
-                      ))
-                    ) : (
-                      <p></p>
-                    )}
-                 
-                </div>
-                </Container>
-            </div>
-           {/* Nút đóng */}
-            
-          </div>
+                ))}
+              </div>
+            </Col>
+          </Row>
         </div>
-      )}
+      </Drawer>
 
-    </div>
+      <style>{`
+        .ant-tabs-left > .ant-tabs-content-holder {
+          border-left: 1px solid #f0f0f0;
+        }
+        .ant-tabs-tab {
+          font-size: 18px !important;
+          padding: 15px 0 !important;
+          font-weight: 600 !important;
+        }
+        .sub-cat-item:hover {
+          background: #000 !important;
+          color: #fff !important;
+        }
+        .sub-cat-item:hover .arrow-icon {
+          opacity: 1 !important;
+          transform: translateX(5px);
+        }
+        .arrow-icon {
+          transition: all 0.3s;
+        }
+      `}</style>
+    </ConfigProvider>
   );
 };
 
-export default Header;
+export default CustomerHeader;
